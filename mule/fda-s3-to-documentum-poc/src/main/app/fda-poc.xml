@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:https="http://www.mulesoft.org/schema/mule/https" xmlns:documentum="http://www.mulesoft.org/schema/mule/documentum" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/documentum http://www.mulesoft.org/schema/mule/documentum/current/mule-documentum.xsd
+http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd">
+    <data-mapper:config name="Submission_File__c_To_Map_1" transformationGraphPath="submission_file__c_to_map_1.grf" doc:name="Submission_File__c_To_Map_1"/>
+    <batch:job name="poll-sfdc-submissions">
+        <batch:threading-profile poolExhaustedAction="WAIT"/>
+        <batch:input>
+            <poll doc:name="Poll">
+                <fixed-frequency-scheduler frequency="${polling.frequency}"/>
+                <sfdc:query-all config-ref="SalesforceConfig" query="SELECT Id,Content_Type__c,Copied_to_FDA__c,FDA_File_Transfer_Status__c,File_Name__c,File_Size_in_Bytes__c,File_Size__c,Parent_Folder_Id__c,Parent_Submission_Number__c,S3_URL__c FROM Submission_File__c where IsDeleted = false" fetchSize="${page.size}" doc:name="Get submissions files"/>
+            </poll>
+            <data-mapper:transform config-ref="Submission_File__c_To_Map_1" doc:name="Submission_File__c To Map"/>
+            <logger level="INFO" doc:name="Logger"/>
+        </batch:input>
+        <batch:process-records>
+            <batch:step name="validate-valid-link">
+                <flow-ref name="validate-s3link" doc:name="validate link"/>
+            </batch:step>
+            <batch:step name="create-submission-folder" accept-expression="recordVars[&quot;validLink&quot;]">
+                <flow-ref name="documentum-create-folder" doc:name="create folder in documentum"/>
+            </batch:step>
+            <batch:step name="sent-to-vm-for-processing" accept-expression="recordVars[&quot;validLink&quot;]">
+                <vm:outbound-endpoint exchange-pattern="one-way" path="${vm.documentum.upload}" doc:name="Sent S3 files to documentum" connector-ref="VMConfig"/>
+            </batch:step>
+            <batch:step name="change-step-to-processing">
+                <logger message="// TODO: Change SFDC file state to PROCESSING" level="INFO" doc:name="Logger"/>
+            </batch:step>
+        </batch:process-records>
+    </batch:job>
+    <sub-flow name="validate-s3link" doc:name="validate-s3link">
+        <logger message="validating: #[payload.S3URL]" level="INFO" doc:name="Logger"/>
+        <enricher source="#[message.inboundProperties['http.status'] &gt;= 200 &amp;&amp; message.inboundProperties['http.status'] &lt; 300]" target="#[recordVars[&quot;validLink&quot;]]" doc:name="Message Enricher">
+            <processor-chain doc:name="Processor Chain">
+                <https:outbound-endpoint exchange-pattern="request-response" host="${s3.host}" port="443" path="#[payload.RelativeS3Url]" method="HEAD" doc:name="HTTP"/>
+            </processor-chain>
+        </enricher>
+    </sub-flow>
+	<flow name="receive-sfdc-notification-for-new-files" doc:name="receive-sfdc-notification-for-new-files">
+		<http:inbound-endpoint exchange-pattern="request-response"
+			address="http://${newfile.http.host}:${newfile.http.port}${newfile.http.path}"
+			doc:name="/files/notification/new" />
+        <http:body-to-parameter-map-transformer doc:name="Body to Parameter Map"/>
+		<flow-ref name="get-sfdc-object-data" doc:name="get sfdc object data" />
+        <flow-ref name="move-file-from-s3-to-documentum" doc:name="download and move to documentum"/>
+	</flow>
+	<sub-flow name="get-sfdc-object-data" doc:name="get-sfdc-object-data">
+		<logger message="// TODO: Implement call to SFDC" level="INFO"
+			doc:name="Logger" />
+	</sub-flow>
+	<sub-flow name="move-file-from-s3-to-documentum" doc:name="move-file-from-s3-to-documentum">
+		<logger level="INFO" doc:name="Logger" />
+		<https:outbound-endpoint exchange-pattern="request-response"
+			method="GET"  doc:name="Get part from S3" host="s3.amazonaws.com" path="seteam/demos/fda/testdata.txt" port="443">
+<!-- 			<properties> -->
+<!-- 				<add-message-property value="bytes=0-1023" key="Range" /> -->
+<!-- 			</properties> -->
+		</https:outbound-endpoint>
+        <set-property propertyName="fileName" value="3ArchivoPrueba.txt" doc:name="Property"/>
+        <component class="com.mule.poc.documentum.DocumentumCall" doc:name="Sent to documentum"/>
+	</sub-flow>
+</mule>

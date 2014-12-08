@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:https="http://www.mulesoft.org/schema/mule/https" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd">
+    <vm:connector name="VMConfig" validateConnections="true" doc:name="VM"/>
+    <flow name="documentum-create-folder" doc:name="documentum-create-folder">
+        <logger message="// TODO: Create folder with #[payload] in documentum" level="INFO" doc:name="Logger"/>
+    </flow>
+    <sub-flow name="amazons3-retrieve-file" doc:name="amazons3-retrieve-file">
+        <logger message="// TODO : Retrieve file from Amazon s3" level="INFO" doc:name="Logger"/>
+        <https:outbound-endpoint exchange-pattern="request-response" host="${s3.host}" port="443" path="#[payload.RelativeS3Url]" method="GET" doc:name="get file stream"/>
+    </sub-flow>
+    <sub-flow name="documentum-add-document-file" doc:name="documentum-add-document-file">
+        <component class="com.mule.poc.documentum.DocumentumCall" doc:name="Copy_of_Sent to documentum"/>
+    </sub-flow>
+    <flow name="documentum-create-document" doc:name="documentum-create-document">
+        <vm:inbound-endpoint exchange-pattern="one-way" path="${vm.documentum.upload}" connector-ref="VMConfig" doc:name="VM"/>
+        <flow-ref name="amazons3-retrieve-file" doc:name="get file from amazon s3"/>
+        <flow-ref name="documentum-add-document-file" doc:name="add file to documentum"/>
+    </flow>
+</mule>
