@@ -9,6 +9,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
+import com.documentum.fc.client.IDfSession;
 
 @Path("/")
 public class WebEndpoint {
@@ -41,10 +42,17 @@ public class WebEndpoint {
 			t = new Thread(threadName) {
 				@Override
 				public void run() {
+					IDfSession session = null;
 					try {
-						manager.mergeDocument(filePath);
+						session = manager.getSession();
+						manager.mergeDocument(filePath, session);
 					} catch (Exception e) {
+						log.log(Level.SEVERE, e.getMessage(), e);
 						throw new RuntimeException(e);
+					} finally {
+						if (session != null) {
+							manager.releaseSession(session);
+						}
 					}
 				}
 			};
