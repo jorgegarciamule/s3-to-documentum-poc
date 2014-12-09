@@ -36,12 +36,19 @@
 			<artifactId>scannotation</artifactId>
 			<version>1.0.2</version>
 		</dependency>
-		<dependency>
+<!-- 		<dependency>
 			<groupId>com.documentum</groupId>
 			<artifactId>dctm</artifactId>
 			<version>1.0</version>
 			<scope>system</scope>
 			<systemPath>/opt/dctm/product/7.1/dfc_shared/dctm.jar</systemPath>
+		</dependency> -->
+ 		<dependency>
+			<groupId>com.documentum</groupId>
+			<artifactId>dctm</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/src/main/webapp/WEB-INF/lib/dfc.jar</systemPath>
 		</dependency>
 	</dependencies>
 	<build>
@@ -53,6 +60,14 @@
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<wtpversion>2.0</wtpversion>
 				</configuration>
 			</plugin>
 		</plugins>

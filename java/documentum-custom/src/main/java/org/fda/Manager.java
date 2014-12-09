@@ -25,6 +25,7 @@ import com.documentum.fc.common.DfException;
 import com.documentum.fc.common.DfId;
 import com.documentum.fc.common.IDfId;
 import com.documentum.fc.common.IDfLoginInfo;
+import com.documentum.operations.IDfDeleteOperation;
 import com.documentum.operations.IDfFile;
 import com.documentum.operations.IDfImportNode;
 import com.documentum.operations.IDfImportOperation;
@@ -41,8 +42,6 @@ public class Manager {
 	private String m_password;
 	private String m_tmpFolder;
 
-	byte[] b = "Hola Mundo".getBytes();
-
 	public Manager(String rep, String user, String pword, String tmpFolder) {
 		try {
 			// Populate member variables.
@@ -56,56 +55,74 @@ public class Manager {
 			System.out.println("An exception has been thrown: " + e);
 		}
 	}
-	
+
 	public String mergeDocument(String folderPath) throws Exception {
 		IDfSession mySession = getSession();
 		IDfFolder folder = mySession.getFolderByPath(folderPath);
-		IDfCollection fileList = 	folder.getContents(null);
+		IDfCollection fileList = folder.getContents(null);
 
-		String documentName = folderPath.substring(folderPath.lastIndexOf('/')+1);
-		String documentFolder = folderPath.substring(0,folderPath.lastIndexOf('/'));
+		String documentName = folderPath
+				.substring(folderPath.lastIndexOf('/') + 1);
+		String documentFolder = folderPath.substring(0,
+				folderPath.lastIndexOf('/'));
 
 		Map<String, String> orderedObjectList = new TreeMap<String, String>();
 		while (fileList.next()) {
-			IDfTypedObject  doc = (IDfTypedObject ) fileList.getTypedObject();
-			orderedObjectList.put(doc.getString("object_name"), doc.getString("r_object_id"));
+			IDfTypedObject doc = (IDfTypedObject) fileList.getTypedObject();
+			orderedObjectList.put(doc.getString("object_name"),
+					doc.getString("r_object_id"));
 		}
-		
+
 		File tmpFile = new File(m_tmpFolder, documentName);
-		OutputStream output = new BufferedOutputStream(new FileOutputStream(tmpFile));
-		
-		for (Map.Entry<String, String> objId : orderedObjectList.entrySet()) {
-			IDfSysObject obj = (IDfSysObject) mySession.getObject(new DfId(objId.getValue()));
-			IOUtils.copy(obj.getContent(), output);
-		}
-		output.flush();
-		output.close();
-		
-		IDfId newObjId = createDocument(documentName, documentFolder);
-		append(newObjId, tmpFile.getAbsolutePath());
-		
 		FileUtils.deleteQuietly(tmpFile);
-		
+		OutputStream output = new BufferedOutputStream(new FileOutputStream(
+				tmpFile));
+
+		try {
+			for (Map.Entry<String, String> objId : orderedObjectList.entrySet()) {
+				IDfSysObject obj = (IDfSysObject) mySession.getObject(new DfId(
+						objId.getValue()));
+				IOUtils.copy(obj.getContent(), output);
+			}
+			output.flush();
+		} finally {
+			IOUtils.closeQuietly(output);
+		}
+		try {
+			mySession.beginTrans();
+			IDfId newObjId = createDocument(documentName, documentFolder);
+			append(newObjId, tmpFile.getAbsolutePath());
+			deleteFolder(folderPath);
+		} catch (Exception e) {
+			mySession.abortTrans();
+			throw new RuntimeException(e);
+		} finally {
+			FileUtils.deleteQuietly(tmpFile);
+		}
+		mySession.flushCache(true);
+		mySession.commitTrans();
+
 		return "ok";
 	}
-	
+
 	public void name() throws Exception {
-		 IDfClientX clientX = new DfClientX();
-         
-         IDfImportOperation impOper = clientX.getImportOperation();
-         
-         IDfFile localFile = clientX.getFile("");
-         IDfImportNode impNode = (IDfImportNode) impOper.add(localFile);
-         
-         IDfSession mySession = getSession();
-         impOper.setSession(mySession);
-         
-         IDfId destId = new DfId("/Temp");
-         impOper.setDestinationFolderId(destId);
-         
+		IDfClientX clientX = new DfClientX();
+
+		IDfImportOperation impOper = clientX.getImportOperation();
+
+		IDfFile localFile = clientX.getFile("");
+		IDfImportNode impNode = (IDfImportNode) impOper.add(localFile);
+
+		IDfSession mySession = getSession();
+		impOper.setSession(mySession);
+
+		IDfId destId = new DfId("/Temp");
+		impOper.setDestinationFolderId(destId);
+
 	}
 
-	public IDfId createDocument(String documentName, String documentFolder) throws Exception {
+	public IDfId createDocument(String documentName, String documentFolder)
+			throws Exception {
 		IDfId id = null;
 		IDfSession mySession = getSession();
 		try {
@@ -115,17 +132,9 @@ public class Manager {
 			newDoc.setObjectName(documentName);
 			newDoc.setContentType(F_BINARY);
 			newDoc.link(documentFolder);
-
-			// for (int i = 0; i < 1; i++) {
-			// ByteArrayOutputStream bytes = new MyOutputStream();
-			// bytes.write(b);
-			// bytes.write(i%20+65);
-			// newDoc.appendContent(bytes);
-			// }
 			newDoc.save();
 
 			id = newDoc.getObjectId();
-			// newDoc.getContent();
 			mySession.flushCache(true);
 			mySession.commitTrans();
 		} catch (Exception e) {
@@ -142,11 +151,6 @@ public class Manager {
 		try {
 			mySession.beginTrans();
 			IDfSysObject newDoc = (IDfSysObject) mySession.getObject(id);
-//			for (int i = 0; i < 20; i++) {
-//				ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//				bytes.write(i % 20 + 65);
-//				newDoc.appendContent(bytes);
-//			}
 			newDoc.setFile(file);
 			newDoc.save();
 			mySession.flushCache(true);
@@ -158,15 +162,33 @@ public class Manager {
 		}
 		releaseSession(mySession);
 	}
-	
-	public void print(IDfId id) throws Exception  {
+
+	public void deleteFolder(String folderPath) {
+		IDfSession mySession = getSession();
+		IDfClientX clientx = new DfClientX();
+		try {
+			IDfDeleteOperation delop = clientx.getDeleteOperation();
+			IDfFolder folder = mySession.getFolderByPath(folderPath);
+
+			delop.add(folder);
+			delop.setDeepFolders(true);
+
+			if (!delop.execute()) {
+				throw new RuntimeException("Folder could not be removed");
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void print(IDfId id) throws Exception {
 		IDfSession mySession = getSession();
 		IDfSysObject newDoc = (IDfSysObject) mySession.getObject(id);
 		for (int i = 0; i < newDoc.getPageCount(); i++) {
 			InputStream input = newDoc.getContentEx("binary", i);
 			org.apache.commons.io.IOUtils.copy(input, System.out);
 		}
-		
+
 	}
 
 	private IDfSessionManager createSessionManager() throws Exception {

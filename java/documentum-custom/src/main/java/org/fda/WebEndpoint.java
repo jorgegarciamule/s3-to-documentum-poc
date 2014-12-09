@@ -2,17 +2,18 @@ package org.fda;
 
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
-import org.apache.log4j.Logger;
 
 @Path("/")
 public class WebEndpoint {
 
-	Logger log = Logger.getRootLogger();
+	Logger log = Logger.getAnonymousLogger();
 	private Manager manager;
 
 	public WebEndpoint(Properties p) {
@@ -30,6 +31,7 @@ public class WebEndpoint {
 
 	@GET()
 	@Path("file/merge")
+	// http://localhost:8080/documentum-custom/rest/file/merge?filePath=%2FTemp%2Fsubmition_0001%2Fexample_file.txt
 	public String mergeFile(@QueryParam("filePath") final String filePath) {
 		String threadName = filePath.replaceAll("[^a-zA-Z0-9]", "");
 
@@ -68,7 +70,7 @@ public class WebEndpoint {
 			t.interrupt();
 			t.stop();
 		} catch (Exception e) {
-			log.warn("Thread stoped", e);
+			log.log(Level.WARNING, "Thread stoped", e);
 		}
 		return "0 - Thread " + threadName + " stopped";
 	}
