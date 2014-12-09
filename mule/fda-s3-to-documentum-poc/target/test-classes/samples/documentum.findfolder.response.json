@@ -1,0 +1,40 @@
+{
+    "id": "http://172.16.57.128:8080/dctm-rest/repositories/MyRepo",
+    "title": "DQL query results",
+    "updated": "2014-12-09T09:43:18.423-08:00",
+    "author": [
+        {
+            "name": "EMC Documentum"
+        }
+    ],
+    "links": [
+        {
+            "rel": "self",
+            "href": "http://172.16.57.128:8080/dctm-rest/repositories/MyRepo"
+        }
+    ],
+    "entries": [
+        {
+            "id": "http://172.16.57.128:8080/dctm-rest/repositories/MyRepo?index=0",
+            "title": "0b0007c280007167",
+            "updated": "2014-12-09T09:43:18.424-08:00",
+            "content": {
+                "name": "query-result",
+                "properties": {
+                    "r_object_id": "0b0007c280007167"
+                }
+            }
+        },
+         {
+            "id": "http://172.16.57.128:8080/dctm-rest/repositories/MyRepo?index=0",
+            "title": "0b0007c280007167",
+            "updated": "2014-12-09T09:43:18.424-08:00",
+            "content": {
+                "name": "query-result",
+                "properties": {
+                    "r_object_id": "0b0007c280007167"
+                }
+            }
+        }
+    ]
+}

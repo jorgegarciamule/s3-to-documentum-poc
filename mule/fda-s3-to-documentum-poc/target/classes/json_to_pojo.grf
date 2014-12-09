@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph __version="3.5.0" author="emmanuelteodoro" created="Tue Dec 09 11:37:24 GMT-03:00 2014" description="JSON To Pojo" guiVersion="3.4.4.P" id="1418141685369" licenseCode="Unlicensed" licenseType="Unknown" modified="Tue Dec 09 11:37:24 GMT-03:00 2014" modifiedBy="emmanuelteodoro" name="JSON_To_Pojo" preview-file="${Project_Home}/src/test/resources/samples/documentum.newfolder.response.json" revision="1.0" showComponentDetails="false">
+<Global>
+<Metadata __index="73" __referenceCounter="0" __sourcePath="{}/object/links" _dataStructure="SINGLE_DIMENSIONAL_COLLECTION" _id="__id" _metadataParentId="d3247cc1-3898-4256-87a8-5128d6d6521d" _parent_id="__parent_id" _type="Input" id="fa8c762c-4b1d-4061-b866-3e2063bb5651">
+<Record fieldDelimiter="," name="links" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_parent_id" __systemManaged="true" name="__parent_id" type="string"/>
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="73" __sourcePath="{}/object/links/rel" containerType="SINGLE" label="rel" name="rel" type="string"/>
+<Field __index="74" __sourcePath="{}/object/links/href" containerType="SINGLE" label="href" name="href" type="string"/>
+</Record>
+</Metadata>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/object" _dataStructure="OBJECT" _id="__id" _type="Input" id="d3247cc1-3898-4256-87a8-5128d6d6521d">
+<Record fieldDelimiter="," name="object" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="0" __sourcePath="{}/object/name" containerType="SINGLE" label="name" name="name" type="string"/>
+<Field __index="1" __sourcePath="{}/object/type" containerType="SINGLE" label="type" name="type" type="string"/>
+<Field __index="2" __sourcePath="{}/object/definition" containerType="SINGLE" label="definition" name="definition" type="string"/>
+<Field __index="3" __sourcePath="{}/object/properties/r_x005fobject_x005fid" containerType="SINGLE" label="r_object_id" name="r_object_id" type="string"/>
+<Field __index="4" __sourcePath="{}/object/properties/object_x005fname" containerType="SINGLE" label="object_name" name="object_name" type="string"/>
+<Field __index="5" __sourcePath="{}/object/properties/r_x005fobject_x005ftype" containerType="SINGLE" label="r_object_type" name="r_object_type" type="string"/>
+<Field __index="6" __sourcePath="{}/object/properties/title" containerType="SINGLE" label="title" name="title" type="string"/>
+<Field __index="7" __sourcePath="{}/object/properties/subject" containerType="SINGLE" label="subject" name="subject" type="string"/>
+<Field __index="8" __sourcePath="{}/object/properties/a_x005fapplication_x005ftype" containerType="SINGLE" label="a_application_type" name="a_application_type" type="string"/>
+<Field __index="9" __sourcePath="{}/object/properties/a_x005fstatus" containerType="SINGLE" label="a_status" name="a_status" type="string"/>
+<Field __index="10" __sourcePath="{}/object/properties/r_x005fcreation_x005fdate" containerType="SINGLE" label="r_creation_date" name="r_creation_date" type="string"/>
+<Field __index="11" __sourcePath="{}/object/properties/r_x005fmodify_x005fdate" containerType="SINGLE" label="r_modify_date" name="r_modify_date" type="string"/>
+<Field __index="12" __sourcePath="{}/object/properties/r_x005fmodifier" containerType="SINGLE" label="r_modifier" name="r_modifier" type="string"/>
+<Field __index="13" __sourcePath="{}/object/properties/a_x005fis_x005fhidden" containerType="SINGLE" label="a_is_hidden" name="a_is_hidden" type="boolean"/>
+<Field __index="14" __sourcePath="{}/object/properties/i_x005fis_x005fdeleted" containerType="SINGLE" label="i_is_deleted" name="i_is_deleted" type="boolean"/>
+<Field __index="15" __sourcePath="{}/object/properties/a_x005farchive" containerType="SINGLE" label="a_archive" name="a_archive" type="boolean"/>
+<Field __index="16" __sourcePath="{}/object/properties/a_x005fcompound_x005farchitecture" containerType="SINGLE" label="a_compound_architecture" name="a_compound_architecture" type="string"/>
+<Field __index="17" __sourcePath="{}/object/properties/a_x005flink_x005fresolved" containerType="SINGLE" label="a_link_resolved" name="a_link_resolved" type="boolean"/>
+<Field __index="18" __sourcePath="{}/object/properties/i_x005freference_x005fcnt" containerType="SINGLE" label="i_reference_cnt" name="i_reference_cnt" type="integer"/>
+<Field __index="19" __sourcePath="{}/object/properties/i_x005fhas_x005ffolder" containerType="SINGLE" label="i_has_folder" name="i_has_folder" type="boolean"/>
+<Field __index="20" __sourcePath="{}/object/properties/i_x005ffolder_x005fid" containerType="list" label="i_folder_id" name="i_folder_id" type="string"/>
+<Field __index="21" __sourcePath="{}/object/properties/r_x005flink_x005fcnt" containerType="SINGLE" label="r_link_cnt" name="r_link_cnt" type="integer"/>
+<Field __index="22" __sourcePath="{}/object/properties/r_x005flink_x005fhigh_x005fcnt" containerType="SINGLE" label="r_link_high_cnt" name="r_link_high_cnt" type="integer"/>
+<Field __index="23" __sourcePath="{}/object/properties/r_x005fassembled_x005ffrom_x005fid" containerType="SINGLE" label="r_assembled_from_id" name="r_assembled_from_id" type="string"/>
+<Field __index="24" __sourcePath="{}/object/properties/r_x005ffrzn_x005fassembly_x005fcnt" containerType="SINGLE" label="r_frzn_assembly_cnt" name="r_frzn_assembly_cnt" type="integer"/>
+<Field __index="25" __sourcePath="{}/object/properties/r_x005fhas_x005ffrzn_x005fassembly" containerType="SINGLE" label="r_has_frzn_assembly" name="r_has_frzn_assembly" type="boolean"/>
+<Field __index="26" __sourcePath="{}/object/properties/resolution_x005flabel" containerType="SINGLE" label="resolution_label" name="resolution_label" type="string"/>
+<Field __index="27" __sourcePath="{}/object/properties/r_x005fis_x005fvirtual_x005fdoc" containerType="SINGLE" label="r_is_virtual_doc" name="r_is_virtual_doc" type="integer"/>
+<Field __index="28" __sourcePath="{}/object/properties/i_x005fcontents_x005fid" containerType="SINGLE" label="i_contents_id" name="i_contents_id" type="string"/>
+<Field __index="29" __sourcePath="{}/object/properties/a_x005fcontent_x005ftype" containerType="SINGLE" label="a_content_type" name="a_content_type" type="string"/>
+<Field __index="30" __sourcePath="{}/object/properties/r_x005fpage_x005fcnt" containerType="SINGLE" label="r_page_cnt" name="r_page_cnt" type="integer"/>
+<Field __index="31" __sourcePath="{}/object/properties/r_x005fcontent_x005fsize" containerType="SINGLE" label="r_content_size" name="r_content_size" type="integer"/>
+<Field __index="32" __sourcePath="{}/object/properties/a_x005ffull_x005ftext" containerType="SINGLE" label="a_full_text" name="a_full_text" type="boolean"/>
+<Field __index="33" __sourcePath="{}/object/properties/a_x005fstorage_x005ftype" containerType="SINGLE" label="a_storage_type" name="a_storage_type" type="string"/>
+<Field __index="34" __sourcePath="{}/object/properties/i_x005fcabinet_x005fid" containerType="SINGLE" label="i_cabinet_id" name="i_cabinet_id" type="string"/>
+<Field __index="35" __sourcePath="{}/object/properties/owner_x005fname" containerType="SINGLE" label="owner_name" name="owner_name" type="string"/>
+<Field __index="36" __sourcePath="{}/object/properties/owner_x005fpermit" containerType="SINGLE" label="owner_permit" name="owner_permit" type="integer"/>
+<Field __index="37" __sourcePath="{}/object/properties/group_x005fname" containerType="SINGLE" label="group_name" name="group_name" type="string"/>
+<Field __index="38" __sourcePath="{}/object/properties/group_x005fpermit" containerType="SINGLE" label="group_permit" name="group_permit" type="integer"/>
+<Field __index="39" __sourcePath="{}/object/properties/world_x005fpermit" containerType="SINGLE" label="world_permit" name="world_permit" type="integer"/>
+<Field __index="40" __sourcePath="{}/object/properties/i_x005fantecedent_x005fid" containerType="SINGLE" label="i_antecedent_id" name="i_antecedent_id" type="string"/>
+<Field __index="41" __sourcePath="{}/object/properties/i_x005fchronicle_x005fid" containerType="SINGLE" label="i_chronicle_id" name="i_chronicle_id" type="string"/>
+<Field __index="42" __sourcePath="{}/object/properties/i_x005flatest_x005fflag" containerType="SINGLE" label="i_latest_flag" name="i_latest_flag" type="boolean"/>
+<Field __index="43" __sourcePath="{}/object/properties/r_x005flock_x005fowner" containerType="SINGLE" label="r_lock_owner" name="r_lock_owner" type="string"/>
+<Field __index="44" __sourcePath="{}/object/properties/r_x005flock_x005fmachine" containerType="SINGLE" label="r_lock_machine" name="r_lock_machine" type="string"/>
+<Field __index="45" __sourcePath="{}/object/properties/log_x005fentry" containerType="SINGLE" label="log_entry" name="log_entry" type="string"/>
+<Field __index="46" __sourcePath="{}/object/properties/r_x005fversion_x005flabel" containerType="list" label="r_version_label" name="r_version_label" type="string"/>
+<Field __index="47" __sourcePath="{}/object/properties/i_x005fbranch_x005fcnt" containerType="SINGLE" label="i_branch_cnt" name="i_branch_cnt" type="integer"/>
+<Field __index="48" __sourcePath="{}/object/properties/i_x005fdirect_x005fdsc" containerType="SINGLE" label="i_direct_dsc" name="i_direct_dsc" type="boolean"/>
+<Field __index="49" __sourcePath="{}/object/properties/r_x005fimmutable_x005fflag" containerType="SINGLE" label="r_immutable_flag" name="r_immutable_flag" type="boolean"/>
+<Field __index="50" __sourcePath="{}/object/properties/r_x005ffrozen_x005fflag" containerType="SINGLE" label="r_frozen_flag" name="r_frozen_flag" type="boolean"/>
+<Field __index="51" __sourcePath="{}/object/properties/r_x005fhas_x005fevents" containerType="SINGLE" label="r_has_events" name="r_has_events" type="boolean"/>
+<Field __index="52" __sourcePath="{}/object/properties/acl_x005fdomain" containerType="SINGLE" label="acl_domain" name="acl_domain" type="string"/>
+<Field __index="53" __sourcePath="{}/object/properties/acl_x005fname" containerType="SINGLE" label="acl_name" name="acl_name" type="string"/>
+<Field __index="54" __sourcePath="{}/object/properties/a_x005fspecial_x005fapp" containerType="SINGLE" label="a_special_app" name="a_special_app" type="string"/>
+<Field __index="55" __sourcePath="{}/object/properties/i_x005fis_x005freference" containerType="SINGLE" label="i_is_reference" name="i_is_reference" type="boolean"/>
+<Field __index="56" __sourcePath="{}/object/properties/r_x005fcreator_x005fname" containerType="SINGLE" label="r_creator_name" name="r_creator_name" type="string"/>
+<Field __index="57" __sourcePath="{}/object/properties/r_x005fis_x005fpublic" containerType="SINGLE" label="r_is_public" name="r_is_public" type="boolean"/>
+<Field __index="58" __sourcePath="{}/object/properties/r_x005fpolicy_x005fid" containerType="SINGLE" label="r_policy_id" name="r_policy_id" type="string"/>
+<Field __index="59" __sourcePath="{}/object/properties/r_x005fresume_x005fstate" containerType="SINGLE" label="r_resume_state" name="r_resume_state" type="integer"/>
+<Field __index="60" __sourcePath="{}/object/properties/r_x005fcurrent_x005fstate" containerType="SINGLE" label="r_current_state" name="r_current_state" type="integer"/>
+<Field __index="61" __sourcePath="{}/object/properties/r_x005falias_x005fset_x005fid" containerType="SINGLE" label="r_alias_set_id" name="r_alias_set_id" type="string"/>
+<Field __index="62" __sourcePath="{}/object/properties/a_x005fcategory" containerType="SINGLE" label="a_category" name="a_category" type="string"/>
+<Field __index="63" __sourcePath="{}/object/properties/language_x005fcode" containerType="SINGLE" label="language_code" name="language_code" type="string"/>
+<Field __index="64" __sourcePath="{}/object/properties/a_x005fis_x005ftemplate" containerType="SINGLE" label="a_is_template" name="a_is_template" type="boolean"/>
+<Field __index="65" __sourcePath="{}/object/properties/a_x005fcontrolling_x005fapp" containerType="SINGLE" label="a_controlling_app" name="a_controlling_app" type="string"/>
+<Field __index="66" __sourcePath="{}/object/properties/r_x005ffull_x005fcontent_x005fsize" containerType="SINGLE" label="r_full_content_size" name="r_full_content_size" type="number"/>
+<Field __index="67" __sourcePath="{}/object/properties/a_x005fis_x005fsigned" containerType="SINGLE" label="a_is_signed" name="a_is_signed" type="boolean"/>
+<Field __index="68" __sourcePath="{}/object/properties/i_x005fpartition" containerType="SINGLE" label="i_partition" name="i_partition" type="integer"/>
+<Field __index="69" __sourcePath="{}/object/properties/i_x005fis_x005freplica" containerType="SINGLE" label="i_is_replica" name="i_is_replica" type="boolean"/>
+<Field __index="70" __sourcePath="{}/object/properties/i_x005fvstamp" containerType="SINGLE" label="i_vstamp" name="i_vstamp" type="integer"/>
+<Field __index="71" __sourcePath="{}/object/properties/r_x005ffolder_x005fpath" containerType="list" label="r_folder_path" name="r_folder_path" type="string"/>
+<Field __index="72" __sourcePath="{}/object/properties/i_x005fancestor_x005fid" containerType="list" label="i_ancestor_id" name="i_ancestor_id" type="string"/>
+</Record>
+</Metadata>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/object" _dataStructure="OBJECT" _id="__id" _type="Output" id="9b34b7c3-f939-4413-a783-266eeaa06907">
+<Record fieldDelimiter="," name="String" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="0" __sourcePath="{}/object/text()" containerType="SINGLE" label="text()" name="text" type="string"/>
+</Record>
+</Metadata>
+<Dictionary>
+<Entry id="DictionaryEntry0" input="true" name="inputPayload" output="false" type="object"/>
+<Entry id="DictionaryEntry1" input="false" name="outputPayload" output="true" type="object"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Pojo WRITER" guiX="900" guiY="20" id="BEAN_WRITER0" type="BEAN_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<object xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" clover:inPort="0">$0.text</object>]]></attr>
+<attr name="_data_format"><![CDATA[JAVA]]></attr>
+<attr name="schema"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<schema-object>
+  <typed-object-ref type-ref="java.lang.String"/>
+  <typed-object type="java.lang.String"/>
+</schema-object>
+]]></attr>
+</Node>
+<Node enabled="enabled" guiName="Foreach 'object' -&gt; 'object'" guiX="460" guiY="20" id="FOREACH_OBJECT_OBJECT" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
+<attr name="melScript"><![CDATA[//MEL
+//START -> DO NOT REMOVE
+output.__id = input.__id;
+//END -> DO NOT REMOVE
+output.text = input.r_object_id;]]></attr>
+</Node>
+<Node charset="UTF-8" enabled="enabled" fileURL="dict:inputPayload" guiName="JSON READER" guiX="20" guiY="20" id="JSON_READER0" type="JSON_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context xpath="/root">
+  <Context outPort="0" sequenceField="__id" xpath="object">
+    <Mapping cloverField="name" trim="true" xpath="name"/>
+    <Mapping cloverField="type" trim="true" xpath="type"/>
+    <Mapping cloverField="definition" trim="true" xpath="definition"/>
+    <Mapping cloverField="r_object_id" trim="true" xpath="properties/r_x005fobject_x005fid"/>
+    <Mapping cloverField="object_name" trim="true" xpath="properties/object_x005fname"/>
+    <Mapping cloverField="r_object_type" trim="true" xpath="properties/r_x005fobject_x005ftype"/>
+    <Mapping cloverField="title" trim="true" xpath="properties/title"/>
+    <Mapping cloverField="subject" trim="true" xpath="properties/subject"/>
+    <Mapping cloverField="a_application_type" trim="true" xpath="properties/a_x005fapplication_x005ftype"/>
+    <Mapping cloverField="a_status" trim="true" xpath="properties/a_x005fstatus"/>
+    <Mapping cloverField="r_creation_date" trim="true" xpath="properties/r_x005fcreation_x005fdate"/>
+    <Mapping cloverField="r_modify_date" trim="true" xpath="properties/r_x005fmodify_x005fdate"/>
+    <Mapping cloverField="r_modifier" trim="true" xpath="properties/r_x005fmodifier"/>
+    <Mapping cloverField="a_is_hidden" trim="true" xpath="properties/a_x005fis_x005fhidden"/>
+    <Mapping cloverField="i_is_deleted" trim="true" xpath="properties/i_x005fis_x005fdeleted"/>
+    <Mapping cloverField="a_archive" trim="true" xpath="properties/a_x005farchive"/>
+    <Mapping cloverField="a_compound_architecture" trim="true" xpath="properties/a_x005fcompound_x005farchitecture"/>
+    <Mapping cloverField="a_link_resolved" trim="true" xpath="properties/a_x005flink_x005fresolved"/>
+    <Mapping cloverField="i_reference_cnt" trim="true" xpath="properties/i_x005freference_x005fcnt"/>
+    <Mapping cloverField="i_has_folder" trim="true" xpath="properties/i_x005fhas_x005ffolder"/>
+    <Mapping cloverField="i_folder_id" trim="true" xpath="properties/i_x005ffolder_x005fid"/>
+    <Mapping cloverField="r_link_cnt" trim="true" xpath="properties/r_x005flink_x005fcnt"/>
+    <Mapping cloverField="r_link_high_cnt" trim="true" xpath="properties/r_x005flink_x005fhigh_x005fcnt"/>
+    <Mapping cloverField="r_assembled_from_id" trim="true" xpath="properties/r_x005fassembled_x005ffrom_x005fid"/>
+    <Mapping cloverField="r_frzn_assembly_cnt" trim="true" xpath="properties/r_x005ffrzn_x005fassembly_x005fcnt"/>
+    <Mapping cloverField="r_has_frzn_assembly" trim="true" xpath="properties/r_x005fhas_x005ffrzn_x005fassembly"/>
+    <Mapping cloverField="resolution_label" trim="true" xpath="properties/resolution_x005flabel"/>
+    <Mapping cloverField="r_is_virtual_doc" trim="true" xpath="properties/r_x005fis_x005fvirtual_x005fdoc"/>
+    <Mapping cloverField="i_contents_id" trim="true" xpath="properties/i_x005fcontents_x005fid"/>
+    <Mapping cloverField="a_content_type" trim="true" xpath="properties/a_x005fcontent_x005ftype"/>
+    <Mapping cloverField="r_page_cnt" trim="true" xpath="properties/r_x005fpage_x005fcnt"/>
+    <Mapping cloverField="r_content_size" trim="true" xpath="properties/r_x005fcontent_x005fsize"/>
+    <Mapping cloverField="a_full_text" trim="true" xpath="properties/a_x005ffull_x005ftext"/>
+    <Mapping cloverField="a_storage_type" trim="true" xpath="properties/a_x005fstorage_x005ftype"/>
+    <Mapping cloverField="i_cabinet_id" trim="true" xpath="properties/i_x005fcabinet_x005fid"/>
+    <Mapping cloverField="owner_name" trim="true" xpath="properties/owner_x005fname"/>
+    <Mapping cloverField="owner_permit" trim="true" xpath="properties/owner_x005fpermit"/>
+    <Mapping cloverField="group_name" trim="true" xpath="properties/group_x005fname"/>
+    <Mapping cloverField="group_permit" trim="true" xpath="properties/group_x005fpermit"/>
+    <Mapping cloverField="world_permit" trim="true" xpath="properties/world_x005fpermit"/>
+    <Mapping cloverField="i_antecedent_id" trim="true" xpath="properties/i_x005fantecedent_x005fid"/>
+    <Mapping cloverField="i_chronicle_id" trim="true" xpath="properties/i_x005fchronicle_x005fid"/>
+    <Mapping cloverField="i_latest_flag" trim="true" xpath="properties/i_x005flatest_x005fflag"/>
+    <Mapping cloverField="r_lock_owner" trim="true" xpath="properties/r_x005flock_x005fowner"/>
+    <Mapping cloverField="r_lock_machine" trim="true" xpath="properties/r_x005flock_x005fmachine"/>
+    <Mapping cloverField="log_entry" trim="true" xpath="properties/log_x005fentry"/>
+    <Mapping cloverField="r_version_label" trim="true" xpath="properties/r_x005fversion_x005flabel"/>
+    <Mapping cloverField="i_branch_cnt" trim="true" xpath="properties/i_x005fbranch_x005fcnt"/>
+    <Mapping cloverField="i_direct_dsc" trim="true" xpath="properties/i_x005fdirect_x005fdsc"/>
+    <Mapping cloverField="r_immutable_flag" trim="true" xpath="properties/r_x005fimmutable_x005fflag"/>
+    <Mapping cloverField="r_frozen_flag" trim="true" xpath="properties/r_x005ffrozen_x005fflag"/>
+    <Mapping cloverField="r_has_events" trim="true" xpath="properties/r_x005fhas_x005fevents"/>
+    <Mapping cloverField="acl_domain" trim="true" xpath="properties/acl_x005fdomain"/>
+    <Mapping cloverField="acl_name" trim="true" xpath="properties/acl_x005fname"/>
+    <Mapping cloverField="a_special_app" trim="true" xpath="properties/a_x005fspecial_x005fapp"/>
+    <Mapping cloverField="i_is_reference" trim="true" xpath="properties/i_x005fis_x005freference"/>
+    <Mapping cloverField="r_creator_name" trim="true" xpath="properties/r_x005fcreator_x005fname"/>
+    <Mapping cloverField="r_is_public" trim="true" xpath="properties/r_x005fis_x005fpublic"/>
+    <Mapping cloverField="r_policy_id" trim="true" xpath="properties/r_x005fpolicy_x005fid"/>
+    <Mapping cloverField="r_resume_state" trim="true" xpath="properties/r_x005fresume_x005fstate"/>
+    <Mapping cloverField="r_current_state" trim="true" xpath="properties/r_x005fcurrent_x005fstate"/>
+    <Mapping cloverField="r_alias_set_id" trim="true" xpath="properties/r_x005falias_x005fset_x005fid"/>
+    <Mapping cloverField="a_category" trim="true" xpath="properties/a_x005fcategory"/>
+    <Mapping cloverField="language_code" trim="true" xpath="properties/language_x005fcode"/>
+    <Mapping cloverField="a_is_template" trim="true" xpath="properties/a_x005fis_x005ftemplate"/>
+    <Mapping cloverField="a_controlling_app" trim="true" xpath="properties/a_x005fcontrolling_x005fapp"/>
+    <Mapping cloverField="r_full_content_size" trim="true" xpath="properties/r_x005ffull_x005fcontent_x005fsize"/>
+    <Mapping cloverField="a_is_signed" trim="true" xpath="properties/a_x005fis_x005fsigned"/>
+    <Mapping cloverField="i_partition" trim="true" xpath="properties/i_x005fpartition"/>
+    <Mapping cloverField="i_is_replica" trim="true" xpath="properties/i_x005fis_x005freplica"/>
+    <Mapping cloverField="i_vstamp" trim="true" xpath="properties/i_x005fvstamp"/>
+    <Mapping cloverField="r_folder_path" trim="true" xpath="properties/r_x005ffolder_x005fpath"/>
+    <Mapping cloverField="i_ancestor_id" trim="true" xpath="properties/i_x005fancestor_x005fid"/>
+  </Context>
+</Context>
+]]></attr>
+<attr name="__isJsonSchema"><![CDATA[false]]></attr>
+<attr name="_data_format"><![CDATA[JSON]]></attr>
+<attr name="jsonSchemaURL"><![CDATA[./src/test/resources/samples/documentum.newfolder.response.json]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="FOREACH_OBJECT_OBJECT:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="9b34b7c3-f939-4413-a783-266eeaa06907" outPort="Port 0 (out)" toNode="BEAN_WRITER0:0"/>
+<Edge debugMode="true" fromNode="JSON_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="d3247cc1-3898-4256-87a8-5128d6d6521d" outPort="Port 0 (out)" toNode="FOREACH_OBJECT_OBJECT:0"/>
+</Phase>
+</Graph>
