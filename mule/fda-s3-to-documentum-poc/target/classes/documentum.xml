@@ -113,7 +113,7 @@ if(payload.FileSizeInBytes <= maxSize){
 	for(long bytesFrom = 0; bytesFrom < payload.FileSizeInBytes; bytesFrom = (long)bytesFrom+maxSize ){	
 			bytesTo = (long)( bytesFrom +maxSize) > payload.FileSizeInBytes ? payload.FileSizeInBytes - 1 : ( bytesFrom +maxSize) - 1;
 
-			flowVars.items.add( { "fileName": String.format("%s_%06d", payload.FileName, flowVars.items.size())   ,  "bytesFrom": bytesFrom, "bytesTo": bytesTo, "relativeURL":payload.RelativeS3Url, "documentumFolderId":payload.documentumFolderId });
+			flowVars.items.add( { "fileName": String.format("part_%06d",  flowVars.items.size())   ,  "bytesFrom": bytesFrom, "bytesTo": bytesTo, "relativeURL":payload.RelativeS3Url, "documentumFolderId":payload.documentumFolderId });
 	}
 }
 
