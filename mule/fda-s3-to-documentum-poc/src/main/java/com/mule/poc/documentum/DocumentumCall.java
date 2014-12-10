@@ -1,5 +1,6 @@
 package com.mule.poc.documentum;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
@@ -12,6 +13,8 @@ import org.apache.commons.httpclient.methods.multipart.PartSource;
 import org.mule.api.MuleEventContext;
 import org.mule.api.lifecycle.Callable;
 import org.mule.api.transport.PropertyScope;
+
+import com.mulesoft.module.batch.api.BatchManager;
 
 public class DocumentumCall implements Callable {
 
@@ -46,6 +49,12 @@ public class DocumentumCall implements Callable {
 		int responseCode = httpClient.executeMethod(uploadPost);
 		String response = uploadPost.getResponseBodyAsString();
 		System.out.println(response);
+		
+//		Map<String, BatchManager> batchManagerMap = event.getMuleContext().getRegistry().lookupByType(BatchManager.class);
+//		
+//		BatchManager batchManager = batchManagerMap.values().iterator().next();
+//		
+//		batchManager.getJobInstance("", null).
 		return event.getMessage();
 	}
 

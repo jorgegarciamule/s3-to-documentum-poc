@@ -3,4 +3,5 @@
     <name>fda-s3-to-documentum-poc</name>
     <description></description>
     <muleExtension name="Salesforce" qualifier="org.mule.tooling.ui.contribution.sfdc.3.5.0"/>
+    <muleExtension name="ObjectStore" qualifier="org.mule.tooling.ui.contribution.objectstore"/>
 </mule-project>

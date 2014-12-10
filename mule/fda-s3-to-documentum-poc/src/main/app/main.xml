@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:https="http://www.mulesoft.org/schema/mule/https" xmlns:documentum="http://www.mulesoft.org/schema/mule/documentum" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+<mule xmlns:objectstore="http://www.mulesoft.org/schema/mule/objectstore" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:https="http://www.mulesoft.org/schema/mule/https" xmlns:documentum="http://www.mulesoft.org/schema/mule/documentum" xmlns:json="http://www.mulesoft.org/schema/mule/json"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.2"
@@ -16,7 +16,8 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
-http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd">
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/objectstore http://www.mulesoft.org/schema/mule/objectstore/current/mule-objectstore.xsd">
     <data-mapper:config name="Submission_File__c_To_Map_1" transformationGraphPath="submission_file__c_to_map_1.grf" doc:name="Submission_File__c_To_Map_1"/>
     <batch:job name="poll-sfdc-submissions-processing">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
@@ -65,27 +66,32 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
             <https:outbound-endpoint exchange-pattern="request-response" host="${s3.host}" port="443" path="#[payload.RelativeS3Url]" method="HEAD" doc:name="Get head of file"/>
         </enricher>
     </sub-flow>
-	<flow name="receive-sfdc-notification-for-new-files" doc:name="receive-sfdc-notification-for-new-files">
-		<http:inbound-endpoint exchange-pattern="request-response"
-			address="http://${newfile.http.host}:${newfile.http.port}${newfile.http.path}"
-			doc:name="/files/notification/new" />
-        <http:body-to-parameter-map-transformer doc:name="Body to Parameter Map"/>
-		<flow-ref name="get-sfdc-object-data" doc:name="get sfdc object data" />
-        <flow-ref name="move-file-from-s3-to-documentum" doc:name="download and move to documentum"/>
-	</flow>
 	<sub-flow name="get-sfdc-object-data" doc:name="get-sfdc-object-data">
 		<logger message="// TODO: Implement call to SFDC" level="INFO"
 			doc:name="Logger" />
 	</sub-flow>
-	<sub-flow name="move-file-from-s3-to-documentum" doc:name="move-file-from-s3-to-documentum">
-		<logger level="INFO" doc:name="Logger" />
-		<https:outbound-endpoint exchange-pattern="request-response"
-			method="GET"  doc:name="Get part from S3" host="s3.amazonaws.com" path="seteam/demos/fda/testdata.txt" port="443">
-<!-- 			<properties> -->
-<!-- 				<add-message-property value="bytes=0-1023" key="Range" /> -->
-<!-- 			</properties> -->
-		</https:outbound-endpoint>
-        <set-property propertyName="fileName" value="3ArchivoPrueba.txt" doc:name="Property"/>
-        <component class="com.mule.poc.documentum.DocumentumCall" doc:name="Sent to documentum"/>
-	</sub-flow>
+    <flow name="submission-change-file-part-state" doc:name="submission-change-file-part-state">
+        <set-variable variableName="FilePartState" value="#[payload]" doc:name="Set data in variable FilePartState"/>
+        <objectstore:retrieve config-ref="PartitionsStateConfig" key="#[flowVars.FilePartState.SubmissionNumber+ flowVars.FilePartState.FileName]" targetProperty="#[payload]" doc:name="Get map of states"/>
+        <expression-component doc:name="Update file part state"><![CDATA[fileMap = payload[flowVars.FilePartState.FileName];
+filePartState = fileMap[flowVars.FilePartState.FilePartName];
+
+filePartState.State = flowVars.FilePartState.State;
+
+]]></expression-component>
+        <objectstore:store config-ref="PartitionsStateConfig" key="#[payload.ParentSubmissionNumber + payload.FileName]" value-ref="#[flowVars[payload.ParentSubmissionNumber + payload.FileName]]" doc:name="Update states"/>
+    </flow>
+    <sub-flow name="submission-file-state-create" doc:name="submission-file-state-create">
+        <expression-component doc:name="Process states"><![CDATA[parts = new HashMap();
+
+for(int i = 0; i < flowVars.items.size(); i++){
+	item = flowVars.items[i];
+	part = [ "Name": item.fileName, "State": "NOT PROCESSED", "Size": item.bytesTo - item.bytesFrom + 1 ];
+    
+   parts.put(item.fileName, part);
+
+}
+flowVars[payload.ParentSubmissionNumber + payload.FileName] = [ "FileName": payload.FileName, "State" : "PROCESSING", "Parts": parts ];]]></expression-component>
+        <objectstore:store config-ref="PartitionsStateConfig" key="#[payload.ParentSubmissionNumber + payload.FileName]" value-ref="#[flowVars[payload.ParentSubmissionNumber + payload.FileName]]" overwrite="true" doc:name="Set map of files state by submission"/>
+    </sub-flow>
 </mule>

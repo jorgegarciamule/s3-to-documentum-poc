@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:https="http://www.mulesoft.org/schema/mule/https"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="amazons3-retrieve-file" doc:name="amazons3-retrieve-file">
+		<logger
+			message="Getting file range from #[payload.bytesFrom] to #[payload.bytesTo] of file  #[payload.relativeURL]"
+			level="INFO" doc:name="Logger" />
+
+		<https:outbound-endpoint exchange-pattern="request-response"
+			host="${s3.host}" port="443" path="#[payload.relativeURL]" method="GET"
+			doc:name="get file stream">
+			<message-properties-transformer>
+				<add-message-property key="Range"
+					value="#['bytes=' + payload.bytesFrom +'-'+ payload.bytesTo]" />
+			</message-properties-transformer>
+		</https:outbound-endpoint>
+	</sub-flow>
+</mule>

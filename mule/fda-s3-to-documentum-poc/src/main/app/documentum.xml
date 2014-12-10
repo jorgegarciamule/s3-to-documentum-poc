@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json"
+<mule xmlns:objectstore="http://www.mulesoft.org/schema/mule/objectstore" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:json="http://www.mulesoft.org/schema/mule/json"
 	xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:https="http://www.mulesoft.org/schema/mule/https"
 	xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
@@ -14,10 +14,13 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
 http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/objectstore http://www.mulesoft.org/schema/mule/objectstore/current/mule-objectstore.xsd">
 	
 	<data-mapper:config name="JSON_To_Pojo"
 		transformationGraphPath="json_to_pojo.grf" doc:name="JSON_To_Pojo" />
+    <objectstore:config name="PartitionsStateConfig" persistent="true" doc:name="ObjectStore"/>
 	<flow name="documentum-create-folder" doc:name="documentum-create-folder" processingStrategy="synchronous">
 		<logger
 			message="Creating folder: &quot;Submission_&quot; + payload.ParentSubmissionNumber in documentum"
@@ -61,20 +64,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 		</http:outbound-endpoint>
         <set-payload value="#[json:/entries/[0]/content/properties/r_object_id]" doc:name="Get object id from response"/>
 	</flow>
-	<sub-flow name="amazons3-retrieve-file" doc:name="amazons3-retrieve-file">
-		<logger
-			message="Getting file range from #[payload.bytesFrom] to #[payload.bytesTo]"
-			level="INFO" doc:name="Logger" />
-
-		<https:outbound-endpoint exchange-pattern="request-response"
-			host="${s3.host}" port="443" path="#[payload.relativeURL]" method="GET"
-			doc:name="get file stream">
-			<message-properties-transformer>
-				<add-message-property key="Range"
-					value="#['bytes=' + payload.bytesFrom +'-'+ payload.bytesTo]" />
-			</message-properties-transformer>
-		</https:outbound-endpoint>
-	</sub-flow>
+	
 	<sub-flow name="documentum-add-document-file" doc:name="documentum-add-document-file">
 		<logger level="INFO" doc:name="Logger" />
 		<component class="com.mule.poc.documentum.DocumentumCall"
@@ -111,8 +101,9 @@ if(payload.FileSizeInBytes <= maxSize){
 	flowVars.items.add( { "fileName": payload.FileName,  "bytesFrom": 0, "bytesTo": (long)payload.FileSizeInBytes-1 , "relativeURL":payload.RelativeS3Url , "documentumFolderId":payload.documentumFolderId});
 }else{
 	for(long bytesFrom = 0; bytesFrom < payload.FileSizeInBytes; bytesFrom = (long)bytesFrom+maxSize ){	
-			bytesTo = (long)( bytesFrom +maxSize) > payload.FileSizeInBytes ? payload.FileSizeInBytes - 1 : ( bytesFrom +maxSize) - 1;
+			bytesTo = (long) (bytesFrom +maxSize  >payload.FileSizeInBytes   ? (payload.FileSizeInBytes - 1)  :  (bytesFrom +maxSize - 1));
 
+			System.out.println(String.format("Bytes from: %s to %s", bytesFrom, bytesTo));
 			flowVars.items.add( { "fileName": String.format("part_%06d",  flowVars.items.size())   ,  "bytesFrom": bytesFrom, "bytesTo": bytesTo, "relativeURL":payload.RelativeS3Url, "documentumFolderId":payload.documentumFolderId });
 	}
 }
@@ -125,6 +116,7 @@ if(payload.FileSizeInBytes <= maxSize){
 
 
 ]]></expression-component>
+        <flow-ref name="submission-file-state-create" doc:name="Create state data"/>
 		<foreach doc:name="For Each" collection="flowVars.items">
 			<logger message="#[payload]" level="INFO" doc:name="Logger" />
 			<vm:outbound-endpoint exchange-pattern="one-way"
@@ -138,6 +130,10 @@ if(payload.FileSizeInBytes <= maxSize){
 			value="#[[ &quot;fileName&quot;: payload.fileName, &quot;documentumFolderId&quot;: payload.documentumFolderId]]"
 			doc:name="Set file data" />
 		<flow-ref name="amazons3-retrieve-file" doc:name="get file from amazon s3" />
-		<flow-ref name="documentum-add-document-file" doc:name="add file to documentum" />
+<!--         <async doc:name="Async"> -->
+<!--             <object-to-byte-array-transformer doc:name="Object to Byte Array"/> -->
+<!--             <file:outbound-endpoint path="/Users/emmanuelteodoro/test/outbound" outputPattern="#[flowVars.fileData.fileName]" responseTimeout="10000" doc:name="File"/> -->
+<!--         </async> -->
+        <flow-ref name="documentum-add-document-file" doc:name="add file to documentum"/>
 	</flow>
 </mule>
