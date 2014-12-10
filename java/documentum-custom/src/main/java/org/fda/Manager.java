@@ -239,7 +239,7 @@ public class Manager {
 		m_sessionMgr.release(session);
 	}
 
-	private void updateThreadState(String state) {
+	public void updateThreadState(String state) {
 		updateThreadState(state, "0");
 	}
 

@@ -46,6 +46,8 @@ public class WebEndpoint {
 					try {
 						session = manager.getSession();
 						manager.mergeDocument(filePath, session);
+						manager.updateThreadState(
+								"Merge completed");
 					} catch (Exception e) {
 						log.log(Level.SEVERE, e.getMessage(), e);
 						manager.updateThreadState(
