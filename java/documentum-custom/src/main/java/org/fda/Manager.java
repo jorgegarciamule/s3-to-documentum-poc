@@ -5,8 +5,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -29,6 +35,13 @@ import com.documentum.operations.IDfDeleteOperation;
 public class Manager {
 	public static final String DM_DOCUMENT = "dm_document";
 	public static final String F_BINARY = "binary";
+	public static final String STATE = "state";
+	public static final String STATE_CODE = "state_code";
+	public static final String STATE_TIMESTAMP = "state_timestamp";
+	public static final long STATE_TTL = 12 * 60 * 60 * 1000;
+
+	private Logger log = Logger.getAnonymousLogger();
+	private static final Map<String, Map<String, String>> threadState = new ConcurrentHashMap<String, Map<String, String>>();
 
 	private IDfSessionManager m_sessionMgr;
 	private String m_repository;
@@ -46,12 +59,13 @@ public class Manager {
 			// Call the local createSessionManager method.
 			m_sessionMgr = createSessionManager();
 		} catch (Exception e) {
-			System.out.println("An exception has been thrown: " + e);
+			throw new RuntimeException(e);
 		}
 	}
 
 	public String mergeDocument(String folderPath, IDfSession session)
 			throws Exception {
+		updateThreadState("Merge started");
 		IDfFolder folder = session.getFolderByPath(folderPath);
 		IDfCollection fileList = folder.getContents(null);
 
@@ -73,16 +87,23 @@ public class Manager {
 				tmpFile));
 
 		try {
+			int size = orderedObjectList.entrySet().size();
+			int count = 0;
 			for (Map.Entry<String, String> objId : orderedObjectList.entrySet()) {
 				IDfSysObject obj = (IDfSysObject) session.getObject(new DfId(
 						objId.getValue()));
 				IOUtils.copy(obj.getContent(), output);
+				if (size % 10 == 0) {
+					updateThreadState(String.format("%d parts merged from %d",
+							count, size));
+				}
 			}
 			output.flush();
 		} finally {
 			IOUtils.closeQuietly(output);
 		}
 		try {
+			updateThreadState("Importing new File");
 			beginTrans(session);
 			IDfId newObjId = createDocument(documentName, documentFolder,
 					session);
@@ -90,6 +111,7 @@ public class Manager {
 			deleteFolder(folderPath, session);
 		} catch (Exception e) {
 			abortTrans(session);
+			updateThreadState("Error importing new File","1");
 			throw new RuntimeException(e);
 		} finally {
 			FileUtils.deleteQuietly(tmpFile);
@@ -215,6 +237,40 @@ public class Manager {
 	// Release an active connection to the repository for reuse.
 	public void releaseSession(IDfSession session) {
 		m_sessionMgr.release(session);
+	}
+
+	private void updateThreadState(String state) {
+		updateThreadState(state, "0");
+	}
+
+	public void updateThreadState(String state, String code) {
+		String threadName = Thread.currentThread().getName();
+		Map<String, String> stateMap = threadState.get(threadName);
+		if (stateMap == null) {
+			stateMap = new HashMap<String, String>();
+			threadState.put(threadName, stateMap);
+		}
+		stateMap.put(STATE, state);
+		stateMap.put(STATE_CODE, code);
+		stateMap.put(STATE_TIMESTAMP, "" + new Date().getTime());
+	}
+
+	public Map<String, String> getState(String threadName) {
+		return threadState.get(threadName);
+	}
+	
+	public void cleanStates(){
+		for (Iterator<Map.Entry<String,Map<String,String>>> iterator = threadState.entrySet().iterator(); iterator.hasNext();) {
+			Map.Entry<String,Map<String,String>> state = iterator.next();
+			try {
+				if(Long.parseLong(state.getValue().get(STATE_TIMESTAMP)) + STATE_TTL < new Date().getTime()){
+					iterator.remove();
+				}
+			} catch (Exception e) {
+				log.log(Level.SEVERE,e.getMessage(),e);
+			}
+			
+		}
 	}
 
 }

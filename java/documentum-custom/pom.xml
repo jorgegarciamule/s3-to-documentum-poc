@@ -36,14 +36,14 @@
 			<artifactId>scannotation</artifactId>
 			<version>1.0.2</version>
 		</dependency>
-<!-- 		<dependency>
+<!--  		<dependency>
 			<groupId>com.documentum</groupId>
 			<artifactId>dctm</artifactId>
 			<version>1.0</version>
 			<scope>system</scope>
 			<systemPath>/opt/dctm/product/7.1/dfc_shared/dctm.jar</systemPath>
 		</dependency> -->
- 		<dependency>
+  		<dependency>
 			<groupId>com.documentum</groupId>
 			<artifactId>dctm</artifactId>
 			<version>1.0</version>

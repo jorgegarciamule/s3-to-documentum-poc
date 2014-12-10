@@ -1,5 +1,6 @@
 package org.fda;
 
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
@@ -13,8 +14,7 @@ import com.documentum.fc.client.IDfSession;
 
 @Path("/")
 public class WebEndpoint {
-
-	Logger log = Logger.getAnonymousLogger();
+	private Logger log = Logger.getAnonymousLogger();
 	private Manager manager;
 
 	public WebEndpoint(Properties p) {
@@ -48,20 +48,35 @@ public class WebEndpoint {
 						manager.mergeDocument(filePath, session);
 					} catch (Exception e) {
 						log.log(Level.SEVERE, e.getMessage(), e);
+						manager.updateThreadState(
+								"Error in merge: " + e.getMessage(), "1");
 						throw new RuntimeException(e);
 					} finally {
 						if (session != null) {
 							manager.releaseSession(session);
 						}
 					}
+					manager.cleanStates();
 				}
 			};
 			t.start();
+
 		} else {
 			return "1 - Operation canceled: There is one thread running for that file.";
 		}
 
 		return "0 - Thread started: " + threadName;
+	}
+
+	@GET()
+	@Path("file/merge/status")
+	public String getMergeStatus(@QueryParam("filePath") final String filePath) {
+		String threadName = filePath.replaceAll("[^a-zA-Z0-9]", "");
+		Map<String, String> state = manager.getState(threadName);
+		if(state == null){
+			return "1 - Status not found";
+		}
+		return state.get(Manager.STATE_CODE) + " - " + state.get(Manager.STATE);
 	}
 
 	@GET()
@@ -96,7 +111,6 @@ public class WebEndpoint {
 	protected class CallMerge implements Callable<String> {
 		@Override
 		public String call() throws Exception {
-
 			return null;
 		}
 	}
