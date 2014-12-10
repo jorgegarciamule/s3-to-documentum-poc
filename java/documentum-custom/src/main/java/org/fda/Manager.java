@@ -111,7 +111,7 @@ public class Manager {
 			deleteFolder(folderPath, session);
 		} catch (Exception e) {
 			abortTrans(session);
-			updateThreadState("Error importing new File","1");
+			updateThreadState("Error importing new File","2");
 			throw new RuntimeException(e);
 		} finally {
 			FileUtils.deleteQuietly(tmpFile);

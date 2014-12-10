@@ -51,7 +51,7 @@ public class WebEndpoint {
 					} catch (Exception e) {
 						log.log(Level.SEVERE, e.getMessage(), e);
 						manager.updateThreadState(
-								"Error in merge: " + e.getMessage(), "1");
+								"Error in merge: " + e.getMessage(), "2");
 						throw new RuntimeException(e);
 					} finally {
 						if (session != null) {
@@ -67,7 +67,7 @@ public class WebEndpoint {
 			return "1 - Operation canceled: There is one thread running for that file.";
 		}
 
-		return "0 - Thread started: " + threadName;
+		return "0 - Merge process started. ThreadName: " + threadName;
 	}
 
 	@GET()
