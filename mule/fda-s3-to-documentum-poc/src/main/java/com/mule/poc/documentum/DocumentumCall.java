@@ -15,6 +15,7 @@ import org.mule.api.lifecycle.Callable;
 import org.mule.api.transport.PropertyScope;
 
 import com.mulesoft.module.batch.api.BatchManager;
+import com.mulesoft.module.batch.record.Record;
 
 public class DocumentumCall implements Callable {
 
@@ -28,10 +29,11 @@ public class DocumentumCall implements Callable {
 	@Override
 	public Object onCall(MuleEventContext event) throws Exception {
 		
-		HashMap<String,Object> fileData = (HashMap<String,Object>)event.getMessage().getProperty("fileData", PropertyScope.INVOCATION);
-		url = url.replace("{FOLDER_ID}", (String)fileData.get("documentumFolderId"));
+		HashMap<String,Object> fileData = (HashMap<String,Object>)(( Record)event.getMessage().getProperty("BATCH_RECORD", PropertyScope.INVOCATION)).getVariable("fileData");
+				
+		url = url.replace("{FOLDER_ID}", (String)fileData.get("ParentFolderId"));
 		
-		metadataJson = metadataJson.replace("{OBJECT_NAME}", (String)fileData.get("fileName"));
+		metadataJson = metadataJson.replace("{OBJECT_NAME}", (String)fileData.get("FileName"));
 		
 		Part[] parts = new Part[2];
 		PartSource metadata = new ByteArrayPartSource("metadata", metadataJson.getBytes("UTF-8"));
@@ -54,7 +56,10 @@ public class DocumentumCall implements Callable {
 //		
 //		BatchManager batchManager = batchManagerMap.values().iterator().next();
 //		
-//		batchManager.getJobInstance("", null).
+//		batchManager.getJobInstances("file-batch-processing").next()
+//		batchManager.getJobInstance(arg0, arg1)
+//		batchManager.getJobInstance("08c4e857-8087-11e4-842a-685b35cd0642", "08c4e857-8087-11e4-842a-685b35cd0642").
+//		Thread.sleep(5000);
 		return event.getMessage();
 	}
 
