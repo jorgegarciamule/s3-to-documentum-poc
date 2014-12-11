@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:objectstore="http://www.mulesoft.org/schema/mule/objectstore" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:https="http://www.mulesoft.org/schema/mule/https" xmlns:documentum="http://www.mulesoft.org/schema/mule/documentum" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz" xmlns:objectstore="http://www.mulesoft.org/schema/mule/objectstore" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:https="http://www.mulesoft.org/schema/mule/https" xmlns:documentum="http://www.mulesoft.org/schema/mule/documentum" xmlns:json="http://www.mulesoft.org/schema/mule/json"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.2"
@@ -17,32 +17,36 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
-http://www.mulesoft.org/schema/mule/objectstore http://www.mulesoft.org/schema/mule/objectstore/current/mule-objectstore.xsd">
-    <data-mapper:config name="Submission_File__c_To_Map_1" transformationGraphPath="submission_file__c_to_map_1.grf" doc:name="Submission_File__c_To_Map_1"/>
+http://www.mulesoft.org/schema/mule/objectstore http://www.mulesoft.org/schema/mule/objectstore/current/mule-objectstore.xsd
+http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    <data-mapper:config name="mapMetadata_To_List_Submission_File__c_" transformationGraphPath="mapmetadata_to_list_submission_file__c_.grf" doc:name="mapMetadata_To_List_Submission_File__c_"/>
+    <data-mapper:config name="mapMetadata_To_Submission_File__c" transformationGraphPath="mapmetadata_to_submission_file__c.grf" doc:name="mapMetadata_To_Submission_File__c"/>
+    <data-mapper:config name="List_Submission_File__c__To_Map" transformationGraphPath="list_submission_file__c__to_map.grf" doc:name="List_Submission_File__c__To_Map"/>
     <batch:job name="poll-sfdc-submissions-processing">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         <batch:input>
             <poll doc:name="Poll">
                 <fixed-frequency-scheduler frequency="${polling.frequency}"/>
-                <sfdc:query-all config-ref="SalesforceConfig" query="SELECT Id,Content_Type__c,Copied_to_FDA__c,FDA_File_Transfer_Status__c,File_Name__c,File_Size_in_Bytes__c,File_Size__c,Parent_Folder_Id__c,Parent_Submission_Number__c,S3_URL__c FROM Submission_File__c where IsDeleted = false" fetchSize="${page.size}" doc:name="Get submissions files"/>
+                <sfdc:query config-ref="SalesforceConfig" query="dsql:SELECT Copied_to_FDA__c,FDA_File_Transfer_Status_Message__c,FDA_File_Transfer_Status__c,File_Name__c,File_Size_in_Bytes__c,Id,Parent_Folder_Id__c,Parent_Submission_Number__c,S3_URL__c,WIP__c FROM Submission_File__c WHERE  (FDA_File_Transfer_Status__c = '' OR FDA_File_Transfer_Status__c = 'NOT PROCESSED') AND Copied_to_FDA__c = false AND IsDeleted = false" fetchSize="${page.size}" doc:name="Get submissions files"/>
             </poll>
-            <data-mapper:transform config-ref="Submission_File__c_To_Map_1" doc:name="Submission_File__c To Map"/>
-            <logger level="INFO" doc:name="Logger"/>
+            <data-mapper:transform config-ref="List_Submission_File__c__To_Map" doc:name="List&lt;Submission_File__c&gt; To Map"/>
         </batch:input>
         <batch:process-records>
             <batch:step name="validate-valid-link">
                 <flow-ref name="validate-s3link" doc:name="validate link"/>
             </batch:step>
             <batch:step name="create-submission-folder" accept-expression="recordVars[&quot;validLink&quot;]">
-                <enricher source="#[payload]" target="#[payload['documentumFolderId']]" doc:name="Message Enricher">
+                <enricher source="#[payload]" target="#[payload['ParentFolderId']]" doc:name="Message Enricher">
                     <flow-ref name="fda-create-documentum-submission-folder" doc:name="create folder in documentum"/>
                 </enricher>
             </batch:step>
             <batch:step name="sent-to-vm-for-processing" accept-expression="recordVars[&quot;validLink&quot;]">
                 <vm:outbound-endpoint exchange-pattern="one-way" path="${vm.documentum.upload}" doc:name="Sent S3 files to documentum" connector-ref="VMConfig"/>
             </batch:step>
-            <batch:step name="change-step-to-processing">
-                <logger message="// TODO: Change SFDC file state to PROCESSING" level="INFO" doc:name="Logger"/>
+            <batch:step name="update-saleforce-status">
+                <data-mapper:transform config-ref="mapMetadata_To_Submission_File__c" doc:name="mapMetadata To Submission_File__c"/>
+                <sfdc:update-single config-ref="SalesforceConfig" type="Submission_File__c" doc:name="Update submission file"/>
             </batch:step>
         </batch:process-records>
     </batch:job>
@@ -65,33 +69,28 @@ http://www.mulesoft.org/schema/mule/objectstore http://www.mulesoft.org/schema/m
         <enricher source="#[message.inboundProperties['http.status'] &gt;= 200 &amp;&amp; message.inboundProperties['http.status'] &lt; 300]" target="#[recordVars[&quot;validLink&quot;]]" doc:name="Message Enricher">
             <https:outbound-endpoint exchange-pattern="request-response" host="${s3.host}" port="443" path="#[payload.RelativeS3Url]" method="HEAD" doc:name="Get head of file"/>
         </enricher>
-    </sub-flow>
-	<sub-flow name="get-sfdc-object-data" doc:name="get-sfdc-object-data">
-		<logger message="// TODO: Implement call to SFDC" level="INFO"
-			doc:name="Logger" />
-	</sub-flow>
-    <flow name="submission-change-file-part-state" doc:name="submission-change-file-part-state">
-        <set-variable variableName="FilePartState" value="#[payload]" doc:name="Set data in variable FilePartState"/>
-        <objectstore:retrieve config-ref="PartitionsStateConfig" key="#[flowVars.FilePartState.SubmissionNumber+ flowVars.FilePartState.FileName]" targetProperty="#[payload]" doc:name="Get map of states"/>
-        <expression-component doc:name="Update file part state"><![CDATA[fileMap = payload[flowVars.FilePartState.FileName];
-filePartState = fileMap[flowVars.FilePartState.FilePartName];
+        <choice doc:name="Choice">
+            <when expression="#[recordVars[&quot;validLink&quot;]]">
+                <expression-component doc:name="Set PROCESSING status"><![CDATA[payload.FDAFileTransferStatus = "PROCESSING";
+payload.WorkInProgress = (boolean)true;
 
-filePartState.State = flowVars.FilePartState.State;
+payload.FDAFileTransferStatusMessage = "Initialiting process to download files from s3";
+
+
 
 ]]></expression-component>
-        <objectstore:store config-ref="PartitionsStateConfig" key="#[payload.ParentSubmissionNumber + payload.FileName]" value-ref="#[flowVars[payload.ParentSubmissionNumber + payload.FileName]]" doc:name="Update states"/>
-    </flow>
-    <sub-flow name="submission-file-state-create" doc:name="submission-file-state-create">
-        <expression-component doc:name="Process states"><![CDATA[parts = new HashMap();
-
-for(int i = 0; i < flowVars.items.size(); i++){
-	item = flowVars.items[i];
-	part = [ "Name": item.fileName, "State": "NOT PROCESSED", "Size": item.bytesTo - item.bytesFrom + 1 ];
-    
-   parts.put(item.fileName, part);
-
-}
-flowVars[payload.ParentSubmissionNumber + payload.FileName] = [ "FileName": payload.FileName, "State" : "PROCESSING", "Parts": parts ];]]></expression-component>
-        <objectstore:store config-ref="PartitionsStateConfig" key="#[payload.ParentSubmissionNumber + payload.FileName]" value-ref="#[flowVars[payload.ParentSubmissionNumber + payload.FileName]]" overwrite="true" doc:name="Set map of files state by submission"/>
+            </when>
+            <otherwise>
+                <expression-component doc:name="Set ERROR status"><![CDATA[payload.FDAFileTransferStatus = "ERROR";
+payload.FDAFileTransferStatusMessage = "The download link is invalid or has expired";
+]]></expression-component>
+                <logger level="INFO" doc:name="Logger"/>
+            </otherwise>
+        </choice>
     </sub-flow>
+<!--     <flow name="mainFlow1" doc:name="mainFlow1"> -->
+<!--         <quartz:inbound-endpoint jobName="update-sfdc-file-state" repeatInterval="10000" responseTimeout="10000" doc:name="Quartz"> -->
+<!--             <quartz:event-generator-job/> -->
+<!--         </quartz:inbound-endpoint> -->
+<!--     </flow> -->
 </mule>

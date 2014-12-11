@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph __version="3.5.0" author="emmanuelteodoro" created="Thu Dec 11 09:22:57 ART 2014" description="List&lt;Submission_File__c&gt; To Map" guiVersion="3.4.4.P" id="1418306049804" licenseCode="Unlicensed" licenseType="Unknown" modified="Thu Dec 11 09:22:57 ART 2014" modifiedBy="emmanuelteodoro" name="List_Submission_File__c__To_Map" revision="1.0" showComponentDetails="false">
+<Global>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/mapMetadata" _dataStructure="SINGLE_DIMENSIONAL_COLLECTION" _id="__id" _type="Output" id="b1a1376d-8d4b-4512-8982-021917912138">
+<Record fieldDelimiter="," name="mapMetadata" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="0" __sourcePath="{}/mapMetadata/CopiedToFDA" containerType="SINGLE" label="CopiedToFDA" name="CopiedToFDA" type="boolean"/>
+<Field __index="1" __sourcePath="{}/mapMetadata/FDAFileTransferStatus" containerType="SINGLE" label="FDAFileTransferStatus" name="FDAFileTransferStatus" type="string"/>
+<Field __index="2" __sourcePath="{}/mapMetadata/FDAFileTransferStatusMessage" containerType="SINGLE" label="FDAFileTransferStatusMessage" name="FDAFileTransferStatusMessage" type="string"/>
+<Field __index="3" __sourcePath="{}/mapMetadata/FileName" containerType="SINGLE" label="FileName" name="FileName" type="string"/>
+<Field __index="4" __sourcePath="{}/mapMetadata/FileSizeInBytes" containerType="SINGLE" label="FileSizeInBytes" name="FileSizeInBytes" type="decimal"/>
+<Field __index="5" __sourcePath="{}/mapMetadata/Id" containerType="SINGLE" label="Id" name="Id" type="string"/>
+<Field __index="6" __sourcePath="{}/mapMetadata/ParentFolderId" containerType="SINGLE" label="ParentFolderId" name="ParentFolderId" type="string"/>
+<Field __index="7" __sourcePath="{}/mapMetadata/ParentSubmissionNumber" containerType="SINGLE" label="ParentSubmissionNumber" name="ParentSubmissionNumber" type="string"/>
+<Field __index="10" __sourcePath="{}/mapMetadata/RelativeS3Url" containerType="SINGLE" label="RelativeS3Url" name="RelativeS3Url" type="string"/>
+<Field __index="8" __sourcePath="{}/mapMetadata/S3URL" containerType="SINGLE" label="S3URL" name="S3URL" type="string"/>
+<Field __index="9" __sourcePath="{}/mapMetadata/WorkInProgress" containerType="SINGLE" label="WorkInProgress" name="WorkInProgress" type="boolean"/>
+</Record>
+</Metadata>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/Submission_x005fFile_x005f_x005fc" _dataStructure="SINGLE_DIMENSIONAL_COLLECTION" _id="__id" _type="Input" id="5156168d-5389-4844-b506-192dcdd74b28">
+<Record fieldDelimiter="," name="Submission_File__c" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __implementationClass="java.lang.Boolean" __index="0" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Copied_x005fto_x005fFDA_x005f_x005fc" containerType="SINGLE" label="Copied_to_FDA__c" name="Copied_to_FDA__c" type="boolean"/>
+<Field __implementationClass="java.lang.String" __index="2" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/FDA_x005fFile_x005fTransfer_x005fStatus_x005fMessage_x005f_x005fc" containerType="SINGLE" label="FDA_File_Transfer_Status_Message__c" name="FDA_File_Transfer_Status_Message__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="5" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/FDA_x005fFile_x005fTransfer_x005fStatus_x005f_x005fc" containerType="SINGLE" label="FDA_File_Transfer_Status__c" name="FDA_File_Transfer_Status__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="3" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/File_x005fName_x005f_x005fc" containerType="SINGLE" label="File_Name__c" name="File_Name__c" type="string"/>
+<Field __implementationClass="java.lang.Double" __index="6" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/File_x005fSize_x005fin_x005fBytes_x005f_x005fc" containerType="SINGLE" label="File_Size_in_Bytes__c" name="File_Size_in_Bytes__c" type="number"/>
+<Field __implementationClass="java.lang.String" __index="8" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Id" containerType="SINGLE" label="Id" name="Id" type="string"/>
+<Field __implementationClass="java.lang.String" __index="1" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Parent_x005fFolder_x005fId_x005f_x005fc" containerType="SINGLE" label="Parent_Folder_Id__c" name="Parent_Folder_Id__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="7" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Parent_x005fSubmission_x005fNumber_x005f_x005fc" containerType="SINGLE" label="Parent_Submission_Number__c" name="Parent_Submission_Number__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="9" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/S3_x005fURL_x005f_x005fc" containerType="SINGLE" label="S3_URL__c" name="S3_URL__c" type="string"/>
+<Field __implementationClass="java.lang.Boolean" __index="4" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/WIP_x005f_x005fc" containerType="SINGLE" label="WIP__c" name="WIP__c" type="boolean"/>
+</Record>
+</Metadata>
+<Dictionary>
+<Entry id="DictionaryEntry0" input="true" name="inputPayload" output="false" type="object"/>
+<Entry id="DictionaryEntry1" input="false" name="outputPayload" output="true" type="object"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" fileURL="dict:inputPayload" guiName="Map&lt;k,v&gt; READER" guiX="20" guiY="20" id="BEAN_READER0" type="BEAN_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context outPort="0" sequenceField="__id" xpath=".">
+  <Mapping cloverField="Copied_to_FDA__c" trim="true" xpath="Copied_x005fto_x005fFDA_x005f_x005fc"/>
+  <Mapping cloverField="FDA_File_Transfer_Status_Message__c" trim="true" xpath="FDA_x005fFile_x005fTransfer_x005fStatus_x005fMessage_x005f_x005fc"/>
+  <Mapping cloverField="FDA_File_Transfer_Status__c" trim="true" xpath="FDA_x005fFile_x005fTransfer_x005fStatus_x005f_x005fc"/>
+  <Mapping cloverField="File_Name__c" trim="true" xpath="File_x005fName_x005f_x005fc"/>
+  <Mapping cloverField="File_Size_in_Bytes__c" trim="true" xpath="File_x005fSize_x005fin_x005fBytes_x005f_x005fc"/>
+  <Mapping cloverField="Id" trim="true" xpath="Id"/>
+  <Mapping cloverField="Parent_Folder_Id__c" trim="true" xpath="Parent_x005fFolder_x005fId_x005f_x005fc"/>
+  <Mapping cloverField="Parent_Submission_Number__c" trim="true" xpath="Parent_x005fSubmission_x005fNumber_x005f_x005fc"/>
+  <Mapping cloverField="S3_URL__c" trim="true" xpath="S3_x005fURL_x005f_x005fc"/>
+  <Mapping cloverField="WIP__c" trim="true" xpath="WIP_x005f_x005fc"/>
+</Context>
+]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+<attr name="__metadata"><![CDATA[true]]></attr>
+</Node>
+<Node enabled="enabled" guiName="Foreach 'Submission_x005fFile_x005f_x005fc' -&gt; 'mapMetadata'" guiX="460" guiY="20" id="FOREACH_SUBMISSION_X005F_FILE_X005F_X005FC_MAP_METADATA" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
+<attr name="melScript"><![CDATA[//MEL
+//START -> DO NOT REMOVE
+output.__id = input.__id;
+//END -> DO NOT REMOVE
+output.Id = input.Id ;
+output.CopiedToFDA = input.Copied_to_FDA__c;
+output.FDAFileTransferStatusMessage = input.FDA_File_Transfer_Status_Message__c;
+output.FDAFileTransferStatus = input.FDA_File_Transfer_Status__c;
+output.FileName = input.File_Name__c;
+output.FileSizeInBytes = input.File_Size_in_Bytes__c;
+output.ParentFolderId = input.Parent_Folder_Id__c;
+output.ParentSubmissionNumber = input.Parent_Submission_Number__c;
+output.S3URL = input.S3_URL__c;
+output.WorkInProgress = input.WIP__c;
+output.RelativeS3Url = input.S3_URL__c.replace("http:","https:").replace("https://s3.amazonaws.com/","");
+
+output.S3URL = "https://s3.amazonaws.com/seteam/demos/fda/sharepoint-example-video.mp4";
+output.FileSizeInBytes = 1024*1024*2;
+output.RelativeS3Url = "seteam/demos/fda/sharepoint-example-video.mp4";
+output.FileName = String.valueOf(java.util.UUID.randomUUID());
+]]></attr>
+</Node>
+<Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<clover:collection clover:name="mapMetadata" xmlns:clover="http://www.cloveretl.com/ns/xmlmapping">
+  <item clover:inPort="0">
+    <CopiedToFDA>$0.CopiedToFDA</CopiedToFDA>
+    <FDAFileTransferStatus>$0.FDAFileTransferStatus</FDAFileTransferStatus>
+    <FDAFileTransferStatusMessage>$0.FDAFileTransferStatusMessage</FDAFileTransferStatusMessage>
+    <FileName>$0.FileName</FileName>
+    <FileSizeInBytes>$0.FileSizeInBytes</FileSizeInBytes>
+    <Id>$0.Id</Id>
+    <ParentFolderId>$0.ParentFolderId</ParentFolderId>
+    <ParentSubmissionNumber>$0.ParentSubmissionNumber</ParentSubmissionNumber>
+    <S3URL>$0.S3URL</S3URL>
+    <WorkInProgress>$0.WorkInProgress</WorkInProgress>
+    <RelativeS3Url>$0.RelativeS3Url</RelativeS3Url>
+  </item>
+</clover:collection>]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+<attr name="__dataSourceDefinition"><![CDATA[${Project_Home}/src/test/resources/samples/mule.submissionfile.sample.groovy]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="BEAN_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="5156168d-5389-4844-b506-192dcdd74b28" outPort="Port 0 (out)" toNode="FOREACH_SUBMISSION_X005F_FILE_X005F_X005FC_MAP_METADATA:0"/>
+<Edge debugMode="true" fromNode="FOREACH_SUBMISSION_X005F_FILE_X005F_X005FC_MAP_METADATA:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="b1a1376d-8d4b-4512-8982-021917912138" outPort="Port 0 (out)" toNode="MAP_WRITER0:0"/>
+</Phase>
+</Graph>
