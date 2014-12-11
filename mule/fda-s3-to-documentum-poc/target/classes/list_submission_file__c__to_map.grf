@@ -71,11 +71,6 @@ output.ParentSubmissionNumber = input.Parent_Submission_Number__c;
 output.S3URL = input.S3_URL__c;
 output.WorkInProgress = input.WIP__c;
 output.RelativeS3Url = input.S3_URL__c.replace("http:","https:").replace("https://s3.amazonaws.com/","");
-
-output.S3URL = "https://s3.amazonaws.com/seteam/demos/fda/sharepoint-example-video.mp4";
-output.FileSizeInBytes = 1024*1024*2;
-output.RelativeS3Url = "seteam/demos/fda/sharepoint-example-video.mp4";
-output.FileName = String.valueOf(java.util.UUID.randomUUID());
 ]]></attr>
 </Node>
 <Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">

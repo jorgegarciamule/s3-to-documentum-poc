@@ -12,6 +12,7 @@ import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.PartSource;
 import org.mule.api.MuleEventContext;
 import org.mule.api.lifecycle.Callable;
+import org.mule.api.registry.MuleRegistry;
 import org.mule.api.transport.PropertyScope;
 
 import com.mulesoft.module.batch.api.BatchManager;
@@ -23,16 +24,19 @@ public class DocumentumCall implements Callable {
 
 	String username = "dmadmin";
 	String password = "password";
-	String url = "http://172.16.57.128:8080/dctm-rest/repositories/MyRepo/folders/{FOLDER_ID}/documents";
+	String url = "http://{HOST}:{PORT}/dctm-rest/repositories/MyRepo/folders/{FOLDER_ID}/documents";
 	protected HttpClient httpClient = new HttpClient();
 	
 	@Override
 	public Object onCall(MuleEventContext event) throws Exception {
+		MuleRegistry registry = event.getMuleContext().getRegistry();
+		
 		
 		HashMap<String,Object> fileData = (HashMap<String,Object>)(( Record)event.getMessage().getProperty("BATCH_RECORD", PropertyScope.INVOCATION)).getVariable("fileData");
 				
-		url = url.replace("{FOLDER_ID}", (String)fileData.get("ParentFolderId"));
-		
+		url = url.replace("{FOLDER_ID}", (String)fileData.get("ParentFolderId")).replace("{HOST}", (String)registry.lookupObject("documentum.rest.host")).replace("{PORT}", (String)registry.lookupObject("documentum.rest.port"));
+		username = (String)registry.lookupObject("documentum.username");
+		password = (String)registry.lookupObject("documentum.password");
 		metadataJson = metadataJson.replace("{OBJECT_NAME}", (String)fileData.get("FileName"));
 		
 		Part[] parts = new Part[2];
