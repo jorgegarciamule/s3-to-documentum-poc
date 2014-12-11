@@ -272,5 +272,9 @@ public class Manager {
 			
 		}
 	}
+	
+	public void clearStates(){
+		threadState.clear();
+	}
 
 }

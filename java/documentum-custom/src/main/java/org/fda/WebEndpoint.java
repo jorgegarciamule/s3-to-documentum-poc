@@ -99,6 +99,13 @@ public class WebEndpoint {
 		}
 		return "0 - Thread " + threadName + " stopped";
 	}
+	
+	@GET()
+	@Path("status/clear")
+	public String statusClear() {
+		manager.clearStates();
+		return "Status cleared";
+	}
 
 	private Thread getThread(String name) {
 		Thread thread = null;
