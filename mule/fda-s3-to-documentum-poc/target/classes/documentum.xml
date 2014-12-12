@@ -138,7 +138,10 @@ payload = aux;
             </batch:step>
         </batch:process-records>
         <batch:on-complete>
+            
+            <async doc:name="Async">
             <objectstore:remove config-ref="PartitionsStateConfig" key="Progress#[flowVars.OriginalFileItem.Id]" ignoreNotExists="true" doc:name="Remove progress data"/>
+            </async>
             <choice doc:name="Choice">
                 <when expression="#[payload.loadedRecords &gt; 1 &amp;&amp; payload.failedRecords == 0]">
                     <flow-ref name="sfdc-update-status" doc:name="update SFDC status"/>
