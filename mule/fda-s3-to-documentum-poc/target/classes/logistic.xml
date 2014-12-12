@@ -22,7 +22,7 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
     </flow>
     <flow name="transfer-progress-update-sfdc" doc:name="transfer-progress-update-sfdc">
         <poll doc:name="Poll">
-            <fixed-frequency-scheduler frequency="5000"/>
+            <fixed-frequency-scheduler frequency="${progress.polling.frequency}"/>
             <objectstore:all-keys config-ref="PartitionsStateConfig" doc:name="Get keys of progress status"/>
         </poll>
         <expression-component doc:name="Filter keys"><![CDATA[newList = new ArrayList();

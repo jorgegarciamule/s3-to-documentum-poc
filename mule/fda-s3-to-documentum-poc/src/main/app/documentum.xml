@@ -147,7 +147,7 @@ payload = aux;
                     <flow-ref name="sfdc-update-status" doc:name="update SFDC status"/>
                     <flow-ref name="document-start-file-processing" doc:name="Trigger documentum processing for joining files"/>
                     <set-payload value="#[&quot;DocumentumFileURL&quot;: flowVars.DocumentumFileURL , &quot;SFDC_Id&quot;: flowVars.OriginalFileItem.Id]]" doc:name="Set Documetum file URL in Payload"/>
-                    <objectstore:store config-ref="PartitionsStateConfig" key="#[flowVars.OriginalFileItem.Id]" value-ref="#[flowVars[&quot;DocumentumFileURL&quot;]]" doc:name="Enable documentum processing status check" overwrite="true"/>
+                    <objectstore:store config-ref="PartitionsStateConfig" key="Documentum#[flowVars.OriginalFileItem.Id]" value-ref="#[flowVars[&quot;DocumentumFileURL&quot;]]" doc:name="Enable documentum processing status check" overwrite="true"/>
                 </when>
                 <otherwise>
                     <logger level="INFO" doc:name="Logger" message="Error processing the file"/>
@@ -163,7 +163,7 @@ payload = aux;
     </flow>
     <flow name="document-start-file-processing" doc:name="document-start-file-processing" processingStrategy="synchronous">
         <set-payload value="#[[]]" doc:name="Set Payload"/>
-        <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.merge.url}?filePath=#[flowVars.DocumentumFileURL  ]" doc:name="Trigger documentum processing"/>
+        <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.merge.url}?filePath=#[flowVars.DocumentumFileURL]" doc:name="Trigger documentum processing"/>
         <object-to-string-transformer doc:name="Object to String"/>
 <!--         <logger message="Response of Custom REST MERGE: #[ payload:java.lang.String]" level="INFO" doc:name="Logger"/> -->
     </flow>
@@ -173,11 +173,11 @@ payload = aux;
 <!--         <logger message="Documentum processing status:#[payload]" level="INFO" doc:name="Logger"/> -->
     </sub-flow>
     <flow name="sfdc-status-trigger-update" doc:name="sfdc-status-trigger-update">
-        <quartz:inbound-endpoint jobName="trigger-update-sfdc-status" repeatInterval="30000" responseTimeout="10000" doc:name="Quartz">
-            <quartz:event-generator-job/>
-        </quartz:inbound-endpoint>
-        <objectstore:all-keys config-ref="PartitionsStateConfig" doc:name="Get pending jobs"/>
-        <expression-component doc:name="Expression"><![CDATA[newList = new ArrayList();
+        <poll doc:name="Poll">
+            <fixed-frequency-scheduler frequency="${documentum.polling.frequency}"/>
+            <objectstore:all-keys config-ref="PartitionsStateConfig" doc:name="Get pending jobs"/>
+        </poll>
+        <expression-component doc:name="Filter documentum check status"><![CDATA[newList = new ArrayList();
 
 for(int i= 0; i < payload.size(); i++){
 		if(payload[i].startsWith("Documentum")){
@@ -213,7 +213,7 @@ payload = newList;]]></expression-component>
     </flow>
     <sub-flow name="sfdc-update-documentum-status" doc:name="sfdc-update-documentum-status">
         <async doc:name="Async">
-            <objectstore:remove config-ref="PartitionsStateConfig" key="#[flowVars.SFDCID]" ignoreNotExists="true" doc:name="Remove processed item with error"/>
+            <objectstore:remove config-ref="PartitionsStateConfig" key="Documentum#[flowVars.SFDCID]" ignoreNotExists="true" doc:name="Remove processed item with error"/>
         </async>
         <data-mapper:transform config-ref="Map_To_Submission_File__c_1" doc:name="Map To Submission_File__c"/>
         <sfdc:update-single config-ref="SalesforceConfig" type="Submission_File__c" doc:name="Salesforce">
