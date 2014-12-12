@@ -38,24 +38,25 @@ payload = newList;]]></expression-component>
             <enricher source="#[payload]" target="#[flowVars['ProgressData']]" doc:name="Message Enricher">
                 <objectstore:retrieve config-ref="PartitionsStateConfig" key="#[payload]" doc:name="Get progress value"/>
             </enricher>
-            <expression-component doc:name="Set progress data"><![CDATA[progressBytes= (float)flowVars.ProgressData.Progress;
-totalBytes= (float)flowVars.ProgressData.Total;
+            <expression-component doc:name="Set progress data"><![CDATA[progressBytes= (double)flowVars.ProgressData.Progress;
+totalBytes= (double)flowVars.ProgressData.Total;
 
 progressMessage = "";
 
 payload = totalBytes;
 
 if(totalBytes < 1024){
-	progressMessage = String.format("%d of %d Bytes", progressBytes, totalBytes);
+	progressMessage = String.format("%f of %f Bytes", progressBytes, totalBytes);
 }
 else if(totalBytes < 1024 * 1014){
 	progressMessage = String.format("%.2f of %.2f KB", progressBytes/1024, totalBytes/1024);
 }
+
 else if(totalBytes < 1024 * 1014 * 1024){
 	progressMessage = String.format("%.2f of %.2f MB", progressBytes/1024/1024, totalBytes/1024/1024);
 }
 else {
-	progressMessage = String.format("%d of %d GB", progressBytes/1024/1024/1014, totalBytes/1024/1024/1014);
+	progressMessage = String.format("%.2f of %.2f GB", progressBytes/1024/1024/1014, totalBytes/1024/1024/1014);
 }
 
 payload = [[ "Id" : flowVars.ProgressData.Id, "StatusMessage": progressMessage]];

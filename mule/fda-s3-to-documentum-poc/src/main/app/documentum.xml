@@ -130,9 +130,15 @@ payload = aux;
         </batch:input>
         <batch:process-records>
             <batch:step name="get-file-from-amazon">
-                <batch:set-record-variable variableName="fileData" value="#[[ &quot;FileName&quot;: payload.fileName, &quot;ParentFolderId&quot;: payload.ParentFolderId, &quot;Progress&quot;: payload.Progress]]" doc:name="Record Variable"/>
-                <flow-ref name="amazons3-retrieve-file" doc:name="get file from amazon s3"/>
-                <flow-ref name="documentum-add-document-file" doc:name="add file to documentum"/>
+                <until-successful maxRetries="5" millisBetweenRetries="5000" doc:name="Until Successful">
+                    <processor-chain doc:name="Processor Chain">
+                        <batch:set-record-variable variableName="fileData" value="#[[ &quot;FileName&quot;: payload.fileName, &quot;ParentFolderId&quot;: payload.ParentFolderId, &quot;Progress&quot;: payload.Progress]]" doc:name="Set file data"/>
+                        <flow-ref name="amazons3-retrieve-file" doc:name="get file from amazon s3"/>
+                        <flow-ref name="documentum-add-document-file" doc:name="add file to documentum"/>
+                    </processor-chain>
+                </until-successful>
+            </batch:step>
+            <batch:step name="add-progress">
                 <set-payload value="#[[&quot;Id&quot;: flowVars.OriginalFileItem.Id, &quot;Progress&quot;:  recordVars.fileData.Progress ]]" doc:name="Set info"/>
                 <vm:outbound-endpoint exchange-pattern="one-way" path="${vm.progress.refresh}" connector-ref="VMConfig" doc:name="Add progress"/>
             </batch:step>
@@ -188,7 +194,7 @@ for(int i= 0; i < payload.size(); i++){
 payload = newList;]]></expression-component>
         
         <foreach doc:name="For Each">
-            <set-variable variableName="SFDCID" value="#[payload	]" doc:name="Set SFDC id"/>
+            <set-variable variableName="SFDCID" value="#[payload	.replace(&quot;Documentum&quot;, &quot;&quot;)]" doc:name="Set SFDC id"/>
             <objectstore:retrieve config-ref="PartitionsStateConfig" key="#[payload]" targetProperty="#[payload]" doc:name="Get stored information"/>
             <enricher source="#[payload]" target="#[flowVars[&quot;DPStatus&quot;]]" doc:name="Message Enricher">
                 <flow-ref name="documentum-get-processing-status" doc:name="Get documentum status"/>

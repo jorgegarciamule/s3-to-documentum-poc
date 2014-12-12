@@ -7,7 +7,7 @@
 <Field __index="1" __sourcePath="{}/mapMetadata/FDAFileTransferStatus" containerType="SINGLE" label="FDAFileTransferStatus" name="FDAFileTransferStatus" type="string"/>
 <Field __index="2" __sourcePath="{}/mapMetadata/FDAFileTransferStatusMessage" containerType="SINGLE" label="FDAFileTransferStatusMessage" name="FDAFileTransferStatusMessage" type="string"/>
 <Field __index="3" __sourcePath="{}/mapMetadata/FileName" containerType="SINGLE" label="FileName" name="FileName" type="string"/>
-<Field __index="4" __sourcePath="{}/mapMetadata/FileSizeInBytes" containerType="SINGLE" label="FileSizeInBytes" name="FileSizeInBytes" type="decimal"/>
+<Field __index="4" __sourcePath="{}/mapMetadata/FileSizeInBytes" containerType="SINGLE" label="FileSizeInBytes" name="FileSizeInBytes" type="number"/>
 <Field __index="5" __sourcePath="{}/mapMetadata/Id" containerType="SINGLE" label="Id" name="Id" type="string"/>
 <Field __index="6" __sourcePath="{}/mapMetadata/ParentFolderId" containerType="SINGLE" label="ParentFolderId" name="ParentFolderId" type="string"/>
 <Field __index="7" __sourcePath="{}/mapMetadata/ParentSubmissionNumber" containerType="SINGLE" label="ParentSubmissionNumber" name="ParentSubmissionNumber" type="string"/>
@@ -65,7 +65,7 @@ output.CopiedToFDA = input.Copied_to_FDA__c;
 output.FDAFileTransferStatusMessage = input.FDA_File_Transfer_Status_Message__c;
 output.FDAFileTransferStatus = input.FDA_File_Transfer_Status__c;
 output.FileName = input.File_Name__c;
-output.FileSizeInBytes = input.File_Size_in_Bytes__c;
+output.FileSizeInBytes =input.File_Size_in_Bytes__c;
 output.ParentFolderId = input.Parent_Folder_Id__c;
 output.ParentSubmissionNumber = input.Parent_Submission_Number__c;
 output.S3URL = input.S3_URL__c;

@@ -1,4 +1,5 @@
 package com.mule.poc.documentum;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ public class DocumentumCall implements Callable {
 		
 		
 		HashMap<String,Object> fileData = (HashMap<String,Object>)(( Record)event.getMessage().getProperty("BATCH_RECORD", PropertyScope.INVOCATION)).getVariable("fileData");
-				
+				System.out.println();
 		url = url.replace("{FOLDER_ID}", (String)fileData.get("ParentFolderId")).replace("{HOST}", (String)registry.lookupObject("documentum.rest.host")).replace("{PORT}", (String)registry.lookupObject("documentum.rest.port"));
 		username = (String)registry.lookupObject("documentum.username");
 		password = (String)registry.lookupObject("documentum.password");
@@ -58,7 +59,6 @@ public class DocumentumCall implements Callable {
 		if(httpStatus < 200 || httpStatus >= 300){
 			throw new RuntimeException("Error sending file part: "+ (String)fileData.get("FileName")+" to documentum");
 		}
-		
 		
 		
 		return event.getMessage();
