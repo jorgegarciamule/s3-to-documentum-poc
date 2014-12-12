@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,8 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.documentum.com.DfClientX;
 import com.documentum.com.IDfClientX;
@@ -63,8 +67,8 @@ public class Manager {
 		}
 	}
 
-	public String mergeDocument(String folderPath, IDfSession session)
-			throws Exception {
+	public String mergeDocument(String folderPath, String md5,
+			IDfSession session) throws Exception {
 		updateThreadState("Merge started");
 		IDfFolder folder = session.getFolderByPath(folderPath);
 		IDfCollection fileList = folder.getContents(null);
@@ -85,6 +89,10 @@ public class Manager {
 		FileUtils.deleteQuietly(tmpFile);
 		OutputStream output = new BufferedOutputStream(new FileOutputStream(
 				tmpFile));
+		if (StringUtils.isNotEmpty(md5)) {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			output = new DigestOutputStream(output, md);
+		}
 
 		try {
 			int size = orderedObjectList.entrySet().size();
@@ -99,6 +107,14 @@ public class Manager {
 				}
 			}
 			output.flush();
+			if (StringUtils.isNotEmpty(md5)) {
+				byte[] calculatedMD5Btyes = ((DigestOutputStream) output)
+						.getMessageDigest().digest();
+				String calculatedMD5 = Hex.encodeHexString(calculatedMD5Btyes);
+				log.info(String.format("Original MD5: %s\nCalculated MD5: %s",
+						md5, calculatedMD5));
+				log.info("MD5 " + (md5.equals(calculatedMD5) ? "" : "dont't ") + "matches.");
+			}
 		} finally {
 			IOUtils.closeQuietly(output);
 		}
@@ -111,7 +127,7 @@ public class Manager {
 			deleteFolder(folderPath, session);
 		} catch (Exception e) {
 			abortTrans(session);
-			updateThreadState("Error importing new File","2");
+			updateThreadState("Error importing new File", "2");
 			throw new RuntimeException(e);
 		} finally {
 			FileUtils.deleteQuietly(tmpFile);
@@ -165,6 +181,7 @@ public class Manager {
 
 			delop.add(folder);
 			delop.setDeepFolders(true);
+			delop.setVersionDeletionPolicy(IDfDeleteOperation.ALL_VERSIONS);
 
 			if (!delop.execute()) {
 				throw new RuntimeException("Folder could not be removed");
@@ -256,24 +273,28 @@ public class Manager {
 	}
 
 	public Map<String, String> getState(String threadName) {
+		log.info("Requesting state for:" + threadName + "\nStates: "
+				+ threadState.toString());
 		return threadState.get(threadName);
 	}
-	
-	public void cleanStates(){
-		for (Iterator<Map.Entry<String,Map<String,String>>> iterator = threadState.entrySet().iterator(); iterator.hasNext();) {
-			Map.Entry<String,Map<String,String>> state = iterator.next();
+
+	public void cleanStates() {
+		for (Iterator<Map.Entry<String, Map<String, String>>> iterator = threadState
+				.entrySet().iterator(); iterator.hasNext();) {
+			Map.Entry<String, Map<String, String>> state = iterator.next();
 			try {
-				if(Long.parseLong(state.getValue().get(STATE_TIMESTAMP)) + STATE_TTL < new Date().getTime()){
+				if (Long.parseLong(state.getValue().get(STATE_TIMESTAMP))
+						+ STATE_TTL < new Date().getTime()) {
 					iterator.remove();
 				}
 			} catch (Exception e) {
-				log.log(Level.SEVERE,e.getMessage(),e);
+				log.log(Level.SEVERE, e.getMessage(), e);
 			}
-			
+
 		}
 	}
-	
-	public void clearStates(){
+
+	public void clearStates() {
 		threadState.clear();
 	}
 

@@ -1,11 +1,17 @@
 package org.fda;
 
+import com.documentum.fc.client.IDfSession;
+
 
 public class MainTest {
 
 	public static void main(String[] args) throws Exception {
 
 		Manager m = new Manager("MyRepo","dmadmin","password","/tmp");
+		
+		IDfSession session = m.getSession();
+
+		m.deleteFolder("/Submissions/Submission_67468/DFDF", session);
 		
 		// m.mergeDocument("/Temp/submition_0001/example_file.txt");
 		
