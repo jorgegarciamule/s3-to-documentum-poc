@@ -41,6 +41,9 @@ payload = newList;]]></expression-component>
             <expression-component doc:name="Set progress data"><![CDATA[progressBytes= (double)flowVars.ProgressData.Progress;
 totalBytes= (double)flowVars.ProgressData.Total;
 
+if(progressBytes > totalBytes){
+	totalBytes = totalBytes;
+}
 progressMessage = "";
 
 payload = totalBytes;

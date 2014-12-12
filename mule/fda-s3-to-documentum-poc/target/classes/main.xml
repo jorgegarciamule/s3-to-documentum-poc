@@ -66,8 +66,14 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
     </sub-flow>
     <sub-flow name="validate-s3link" doc:name="validate-s3link">
         <logger message="validating: #[payload.S3URL]" level="INFO" doc:name="Logger"/>
-        <enricher source="#[message.inboundProperties['http.status'] &gt;= 200 &amp;&amp; message.inboundProperties['http.status'] &lt; 300]" target="#[recordVars[&quot;validLink&quot;]]" doc:name="Message Enricher">
-            <https:outbound-endpoint exchange-pattern="request-response" host="${s3.host}" port="443" path="#[payload.RelativeS3Url]" method="HEAD" doc:name="Get head of file"/>
+        <enricher   doc:name="Message Enricher">
+            <https:outbound-endpoint exchange-pattern="request-response" host="${s3.host}" port="443" path="#[payload.RelativeS3Url]" method="GET" doc:name="Get head of file">
+            	<message-properties-transformer> 
+            		<add-message-property key="Range" value="bytes=0-0" />
+            	</message-properties-transformer>
+            </https:outbound-endpoint>
+            <enrich source="#[message.inboundProperties['http.status'] &gt;= 200 &amp;&amp; message.inboundProperties['http.status'] &lt; 300]" target="#[recordVars[&quot;validLink&quot;]]"/>
+            <enrich source="#[message.inboundProperties[&quot;ETag&quot;].replace('&quot;', '')]" target="#[payload[&quot;MD5&quot;]]"/>
         </enricher>
         <choice doc:name="Choice">
             <when expression="#[recordVars[&quot;validLink&quot;]]">

@@ -130,17 +130,15 @@ payload = aux;
         </batch:input>
         <batch:process-records>
             <batch:step name="get-file-from-amazon">
-                <until-successful maxRetries="5" millisBetweenRetries="5000" doc:name="Until Successful">
+                <until-successful maxRetries="5" millisBetweenRetries="5000" doc:name="Until Successful" synchronous="true">
                     <processor-chain doc:name="Processor Chain">
                         <batch:set-record-variable variableName="fileData" value="#[[ &quot;FileName&quot;: payload.fileName, &quot;ParentFolderId&quot;: payload.ParentFolderId, &quot;Progress&quot;: payload.Progress]]" doc:name="Set file data"/>
                         <flow-ref name="amazons3-retrieve-file" doc:name="get file from amazon s3"/>
                         <flow-ref name="documentum-add-document-file" doc:name="add file to documentum"/>
+                        <set-payload value="#[[&quot;Id&quot;: flowVars.OriginalFileItem.Id, &quot;Progress&quot;:  recordVars.fileData.Progress ]]" doc:name="Set info"/>
+                        <vm:outbound-endpoint exchange-pattern="one-way" path="${vm.progress.refresh}" connector-ref="VMConfig" doc:name="Add progress"/>
                     </processor-chain>
                 </until-successful>
-            </batch:step>
-            <batch:step name="add-progress">
-                <set-payload value="#[[&quot;Id&quot;: flowVars.OriginalFileItem.Id, &quot;Progress&quot;:  recordVars.fileData.Progress ]]" doc:name="Set info"/>
-                <vm:outbound-endpoint exchange-pattern="one-way" path="${vm.progress.refresh}" connector-ref="VMConfig" doc:name="Add progress"/>
             </batch:step>
         </batch:process-records>
         <batch:on-complete>
@@ -150,26 +148,29 @@ payload = aux;
             </async>
             <choice doc:name="Choice">
                 <when expression="#[payload.loadedRecords &gt; 1 &amp;&amp; payload.failedRecords == 0]">
+                    <set-payload value="#[[ &quot;State&quot;: &quot;PROCESSING&quot;, &quot;StateDescription&quot; : &quot;Transfer completed. Pending for Documentum processing&quot;, &quot;Id&quot; :  flowVars.OriginalFileItem.Id]]" doc:name="Set SFDC state data"/>
                     <flow-ref name="sfdc-update-status" doc:name="update SFDC status"/>
                     <flow-ref name="document-start-file-processing" doc:name="Trigger documentum processing for joining files"/>
                     <set-payload value="#[&quot;DocumentumFileURL&quot;: flowVars.DocumentumFileURL , &quot;SFDC_Id&quot;: flowVars.OriginalFileItem.Id]]" doc:name="Set Documetum file URL in Payload"/>
                     <objectstore:store config-ref="PartitionsStateConfig" key="Documentum#[flowVars.OriginalFileItem.Id]" value-ref="#[flowVars[&quot;DocumentumFileURL&quot;]]" doc:name="Enable documentum processing status check" overwrite="true"/>
                 </when>
+                <when expression="#[payload.loadedRecords == 1 &amp;&amp; payload.failedRecords == 0]">
+                    <set-payload value="#[[ &quot;State&quot;: &quot;PROCESSED&quot;, &quot;StateDescription&quot; : &quot;The file was uploaded to documentum successfuly&quot;, &quot;Id&quot; :  flowVars.OriginalFileItem.Id]]" doc:name="Set SFDC state data"/>
+                    <flow-ref name="sfdc-update-status" doc:name="UPDATE SFDC status"/>
+                </when>
                 <otherwise>
-                    <logger level="INFO" doc:name="Logger" message="Error processing the file"/>
+                    <logger message="Error processing the file" level="INFO" doc:name="Logger"/>
                 </otherwise>
             </choice>
         </batch:on-complete>
     </batch:job>
     <flow name="sfdc-update-status" doc:name="sfdc-update-status" processingStrategy="synchronous">
-        <set-payload value="#[[ &quot;State&quot;: &quot;PROCESSING&quot;, &quot;StateDescription&quot; : &quot;Transfer completed. Pending for Documentum processing&quot;, &quot;Id&quot; :  flowVars.OriginalFileItem.Id]]" doc:name="Set SFDC state data"/>
         <data-mapper:transform config-ref="Map_To_Submission_File__c" doc:name="Map To Submission_File__c"/>
         <sfdc:update-single config-ref="SalesforceConfig" type="Submission_File__c" doc:name="Update submission file">
         </sfdc:update-single>
     </flow>
     <flow name="document-start-file-processing" doc:name="document-start-file-processing" processingStrategy="synchronous">
-        <set-payload value="#[[]]" doc:name="Set Payload"/>
-        <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.merge.url}?filePath=#[flowVars.DocumentumFileURL]" doc:name="Trigger documentum processing"/>
+        <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.merge.url}?filePath=#[flowVars.DocumentumFileURL]&amp;md5=#[flowVars.OriginalFileItem.MD5]" doc:name="Trigger documentum processing"/>
         <object-to-string-transformer doc:name="Object to String"/>
 <!--         <logger message="Response of Custom REST MERGE: #[ payload:java.lang.String]" level="INFO" doc:name="Logger"/> -->
     </flow>
@@ -202,25 +203,29 @@ payload = newList;]]></expression-component>
             <choice doc:name="Choice">
                 <when expression="#[flowVars.DPStatus == &quot;0 - Merge completed&quot;]">
                     <set-payload value="#[[  &quot;State&quot;: &quot;PROCESSED&quot;, &quot;StateDescription&quot; : &quot;Documentum:&quot; + flowVars.DPStatus, &quot;Id&quot; :  flowVars.SFDCID, &quot;CopiedToFDA&quot;: true ]]" doc:name="Set SFDC state PROCESSED"/>
+                    <async doc:name="Async">
+                        <objectstore:remove config-ref="PartitionsStateConfig" key="Documentum#[flowVars.SFDCID]" ignoreNotExists="true" doc:name="Remove processed item with error"/>
+                    </async>
                     <flow-ref name="sfdc-update-documentum-status" doc:name="Update SFDC status"/>
                 </when>
                 <when expression="#[flowVars.DPStatus.startsWith(&quot;2&quot;)]">
                     <set-payload value="#[[  &quot;State&quot;: &quot;ERROR&quot;, &quot;StateDescription&quot; : &quot;Documentum:&quot; + flowVars.DPStatus, &quot;Id&quot; :  flowVars.SFDCID, &quot;CopiedToFDA&quot;: false ]]" doc:name="SFDC ERROR STATE"/>
+                    <async doc:name="Async">
+                        <objectstore:remove config-ref="PartitionsStateConfig" key="Documentum#[flowVars.SFDCID]" ignoreNotExists="true" doc:name="Copy_of_Remove processed item with error"/>
+                    </async>
                     <flow-ref name="sfdc-update-documentum-status" doc:name="Update SFDC status"/>
                 </when>
                 <when expression="#[flowVars.DPStatus == &quot;1 - Status not found&quot;]">
                     <logger message="Pending for documentum processing" level="INFO" doc:name="Logger"/>
                 </when>
                 <otherwise>
-                    <set-payload value="#[[ [ &quot;State&quot;: &quot;PROCESSING&quot;, &quot;StateDescription&quot; : &quot;Documentum:&quot; + flowVars.DPStatus, &quot;Id&quot; :  payload.SFDC_ID, &quot;WorkInProgress&quot;: true] ]]" doc:name="Set SFDC state PENDING"/>
+                    <set-payload value="#[[  &quot;State&quot;: &quot;PROCESSING&quot;, &quot;StateDescription&quot; : &quot;Documentum:&quot; + flowVars.DPStatus, &quot;Id&quot; :  flowVars.SFDCID ]]" doc:name="Set SFDC state PENDING"/>
+                    <flow-ref name="sfdc-update-documentum-status" doc:name="Update SFDC status"/>
                 </otherwise>
             </choice>
         </foreach>
     </flow>
     <sub-flow name="sfdc-update-documentum-status" doc:name="sfdc-update-documentum-status">
-        <async doc:name="Async">
-            <objectstore:remove config-ref="PartitionsStateConfig" key="Documentum#[flowVars.SFDCID]" ignoreNotExists="true" doc:name="Remove processed item with error"/>
-        </async>
         <data-mapper:transform config-ref="Map_To_Submission_File__c_1" doc:name="Map To Submission_File__c"/>
         <sfdc:update-single config-ref="SalesforceConfig" type="Submission_File__c" doc:name="Salesforce">
         </sfdc:update-single>
