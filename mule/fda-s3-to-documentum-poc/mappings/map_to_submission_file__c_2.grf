@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph __version="3.5.0" author="emmanuelteodoro" created="Fri Dec 12 00:56:31 ART 2014" description="Map To Submission_File__c" guiVersion="3.4.4.P" id="1418357968660" licenseCode="Unlicensed" licenseType="Unknown" modified="Fri Dec 12 00:56:31 ART 2014" modifiedBy="emmanuelteodoro" name="Map_To_Submission_File__c" revision="1.0" showComponentDetails="false">
+<Global>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/item" _dataStructure="OBJECT" _id="__id" _type="Input" id="95d6e2a3-5fd1-4b0c-9b09-039253a71011">
+<Record fieldDelimiter="," name="item" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __index="0" __sourcePath="{}/item/Id" containerType="SINGLE" label="Id" name="Id" type="string"/>
+<Field __index="1" __sourcePath="{}/item/StatusMessage" containerType="SINGLE" label="StatusMessage" name="StatusMessage" type="string"/>
+</Record>
+</Metadata>
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/Submission_x005fFile_x005f_x005fc" _dataStructure="OBJECT" _id="__id" _type="Output" id="29624d16-0bf5-4486-82ef-bfef66cbe805">
+<Record fieldDelimiter="," name="Submission_File__c" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
+<Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
+<Field __implementationClass="java.lang.String" __index="19" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Comments_x005f_x005fc" containerType="SINGLE" label="Comments__c" name="Comments__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="9" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Content_x005fType_x005f_x005fc" containerType="SINGLE" label="Content_Type__c" name="Content_Type__c" type="string"/>
+<Field __implementationClass="java.lang.Double" __index="22" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Copied_x005fto_x005fFDA_x005fCounter_x005f_x005fc" containerType="SINGLE" label="Copied_to_FDA_Counter__c" name="Copied_to_FDA_Counter__c" type="number"/>
+<Field __implementationClass="java.lang.Boolean" __index="11" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Copied_x005fto_x005fFDA_x005f_x005fc" containerType="SINGLE" label="Copied_to_FDA__c" name="Copied_to_FDA__c" type="boolean"/>
+<Field __implementationClass="java.lang.String" __index="6" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/CreatedById" containerType="SINGLE" label="CreatedById" name="CreatedById" type="string"/>
+<Field __dmType="Calendar" __implementationClass="java.util.Calendar" __index="20" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/CreatedDate" containerType="SINGLE" label="CreatedDate" name="CreatedDate" type="string"/>
+<Field __implementationClass="java.lang.String" __index="7" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Description_x005f_x005fc" containerType="SINGLE" label="Description__c" name="Description__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="1" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/FDA_x005fFile_x005fTransfer_x005fStatus_x005fMessage_x005f_x005fc" containerType="SINGLE" label="FDA_File_Transfer_Status_Message__c" name="FDA_File_Transfer_Status_Message__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="14" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/FDA_x005fFile_x005fTransfer_x005fStatus_x005f_x005fc" containerType="SINGLE" label="FDA_File_Transfer_Status__c" name="FDA_File_Transfer_Status__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="5" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/File_x005fName_x005f_x005fc" containerType="SINGLE" label="File_Name__c" name="File_Name__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="24" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/File_x005fSize_x005f_x005fc" containerType="SINGLE" label="File_Size__c" name="File_Size__c" type="string"/>
+<Field __implementationClass="java.lang.Double" __index="2" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/File_x005fSize_x005fin_x005fBytes_x005f_x005fc" containerType="SINGLE" label="File_Size_in_Bytes__c" name="File_Size_in_Bytes__c" type="number"/>
+<Field __implementationClass="java.lang.String" __index="23" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Id" containerType="SINGLE" label="Id" name="Id" type="string"/>
+<Field __implementationClass="java.lang.Boolean" __index="12" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/IsDeleted" containerType="SINGLE" label="IsDeleted" name="IsDeleted" type="boolean"/>
+<Field __dmType="Calendar" __implementationClass="java.util.Calendar" __index="21" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/LastActivityDate" containerType="SINGLE" label="LastActivityDate" name="LastActivityDate" type="string"/>
+<Field __implementationClass="java.lang.String" __index="25" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/LastModifiedById" containerType="SINGLE" label="LastModifiedById" name="LastModifiedById" type="string"/>
+<Field __dmType="Calendar" __implementationClass="java.util.Calendar" __index="0" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/LastModifiedDate" containerType="SINGLE" label="LastModifiedDate" name="LastModifiedDate" type="string"/>
+<Field __dmType="Calendar" __implementationClass="java.util.Calendar" __index="3" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/LastReferencedDate" containerType="SINGLE" label="LastReferencedDate" name="LastReferencedDate" type="string"/>
+<Field __dmType="Calendar" __implementationClass="java.util.Calendar" __index="15" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/LastViewedDate" containerType="SINGLE" label="LastViewedDate" name="LastViewedDate" type="string"/>
+<Field __implementationClass="java.lang.String" __index="4" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Name" containerType="SINGLE" label="Name" name="Name" type="string"/>
+<Field __implementationClass="java.lang.String" __index="18" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Parent_x005fFolder_x005fId_x005f_x005fc" containerType="SINGLE" label="Parent_Folder_Id__c" name="Parent_Folder_Id__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="16" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Parent_x005fSubmission_x005fNumber_x005f_x005fc" containerType="SINGLE" label="Parent_Submission_Number__c" name="Parent_Submission_Number__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="10" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/Parent_x005f_x005fc" containerType="SINGLE" label="Parent__c" name="Parent__c" type="string"/>
+<Field __implementationClass="java.lang.String" __index="8" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/S3_x005fURL_x005f_x005fc" containerType="SINGLE" label="S3_URL__c" name="S3_URL__c" type="string"/>
+<Field __dmType="Calendar" __implementationClass="java.util.Calendar" __index="17" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/SystemModstamp" containerType="SINGLE" label="SystemModstamp" name="SystemModstamp" type="string"/>
+<Field __implementationClass="java.lang.Boolean" __index="13" __sourcePath="{}/Submission_x005fFile_x005f_x005fc/WIP_x005f_x005fc" containerType="SINGLE" label="WIP__c" name="WIP__c" type="boolean"/>
+</Record>
+</Metadata>
+<Dictionary>
+<Entry id="DictionaryEntry0" input="true" name="inputPayload" output="false" type="object"/>
+<Entry id="DictionaryEntry1" input="false" name="outputPayload" output="true" type="object"/>
+</Dictionary>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" fileURL="dict:inputPayload" guiName="Map&lt;k,v&gt; READER" guiX="20" guiY="20" id="BEAN_READER0" type="BEAN_READER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context outPort="0" sequenceField="__id" xpath=".">
+  <Mapping cloverField="Id" trim="true" xpath="Id"/>
+  <Mapping cloverField="StatusMessage" trim="true" xpath="StatusMessage"/>
+</Context>
+]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+</Node>
+<Node enabled="enabled" guiName="Foreach 'item' -&gt; 'Submission_x005fFile_x005f_x005fc'" guiX="460" guiY="20" id="FOREACH_ITEM_SUBMISSION_X005F_FILE_X005F_X005FC" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
+<attr name="melScript"><![CDATA[//MEL
+//START -> DO NOT REMOVE
+output.__id = input.__id;
+//END -> DO NOT REMOVE
+output.Id = input.Id;
+output.FDA_File_Transfer_Status_Message__c = input.StatusMessage;]]></attr>
+</Node>
+<Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">
+<attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<clover:element clover:name="Submission_File__c" xmlns:clover="http://www.cloveretl.com/ns/xmlmapping" clover:inPort="0">
+  <LastModifiedDate clover:dataType="java.util.Calendar">$0.LastModifiedDate</LastModifiedDate>
+  <clover:element clover:name="FDA_File_Transfer_Status_Message__c" clover:dataType="java.lang.String">$0.FDA_File_Transfer_Status_Message__c</clover:element>
+  <clover:element clover:name="File_Size_in_Bytes__c" clover:dataType="java.lang.Double">$0.File_Size_in_Bytes__c</clover:element>
+  <LastReferencedDate clover:dataType="java.util.Calendar">$0.LastReferencedDate</LastReferencedDate>
+  <Name clover:dataType="java.lang.String">$0.Name</Name>
+  <clover:element clover:name="File_Name__c" clover:dataType="java.lang.String">$0.File_Name__c</clover:element>
+  <CreatedById clover:dataType="java.lang.String">$0.CreatedById</CreatedById>
+  <clover:element clover:name="Description__c" clover:dataType="java.lang.String">$0.Description__c</clover:element>
+  <clover:element clover:name="S3_URL__c" clover:dataType="java.lang.String">$0.S3_URL__c</clover:element>
+  <clover:element clover:name="Content_Type__c" clover:dataType="java.lang.String">$0.Content_Type__c</clover:element>
+  <clover:element clover:name="Parent__c" clover:dataType="java.lang.String">$0.Parent__c</clover:element>
+  <clover:element clover:name="Copied_to_FDA__c" clover:dataType="java.lang.Boolean">$0.Copied_to_FDA__c</clover:element>
+  <IsDeleted clover:dataType="java.lang.Boolean">$0.IsDeleted</IsDeleted>
+  <clover:element clover:name="WIP__c" clover:dataType="java.lang.Boolean">$0.WIP__c</clover:element>
+  <clover:element clover:name="FDA_File_Transfer_Status__c" clover:dataType="java.lang.String">$0.FDA_File_Transfer_Status__c</clover:element>
+  <LastViewedDate clover:dataType="java.util.Calendar">$0.LastViewedDate</LastViewedDate>
+  <clover:element clover:name="Parent_Submission_Number__c" clover:dataType="java.lang.String">$0.Parent_Submission_Number__c</clover:element>
+  <SystemModstamp clover:dataType="java.util.Calendar">$0.SystemModstamp</SystemModstamp>
+  <clover:element clover:name="Parent_Folder_Id__c" clover:dataType="java.lang.String">$0.Parent_Folder_Id__c</clover:element>
+  <clover:element clover:name="Comments__c" clover:dataType="java.lang.String">$0.Comments__c</clover:element>
+  <CreatedDate clover:dataType="java.util.Calendar">$0.CreatedDate</CreatedDate>
+  <LastActivityDate clover:dataType="java.util.Calendar">$0.LastActivityDate</LastActivityDate>
+  <clover:element clover:name="Copied_to_FDA_Counter__c" clover:dataType="java.lang.Double">$0.Copied_to_FDA_Counter__c</clover:element>
+  <Id clover:dataType="java.lang.String">$0.Id</Id>
+  <clover:element clover:name="File_Size__c" clover:dataType="java.lang.String">$0.File_Size__c</clover:element>
+  <LastModifiedById clover:dataType="java.lang.String">$0.LastModifiedById</LastModifiedById>
+</clover:element>]]></attr>
+<attr name="_data_format"><![CDATA[MAP]]></attr>
+<attr name="__metadata"><![CDATA[true]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="BEAN_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="95d6e2a3-5fd1-4b0c-9b09-039253a71011" outPort="Port 0 (out)" toNode="FOREACH_ITEM_SUBMISSION_X005F_FILE_X005F_X005FC:0"/>
+<Edge debugMode="true" fromNode="FOREACH_ITEM_SUBMISSION_X005F_FILE_X005F_X005FC:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="29624d16-0bf5-4486-82ef-bfef66cbe805" outPort="Port 0 (out)" toNode="MAP_WRITER0:0"/>
+</Phase>
+</Graph>

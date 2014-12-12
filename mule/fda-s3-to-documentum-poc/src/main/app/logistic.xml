@@ -1,9 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+<mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:objectstore="http://www.mulesoft.org/schema/mule/objectstore" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd">
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/objectstore http://www.mulesoft.org/schema/mule/objectstore/current/mule-objectstore.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd">
+    <data-mapper:config name="Map_To_Submission_File__c2" transformationGraphPath="map_to_submission_file__c_2.grf" doc:name="Map_To_Submission_File__c"/>
+    <flow name="transfer-progress" doc:name="transfer-progress" processingStrategy="synchronous">
+        <vm:inbound-endpoint exchange-pattern="one-way" path="${vm.progress.refresh}" connector-ref="VMConfig" doc:name="VM"/>
+        <set-variable variableName="Data" value="#[payload]" doc:name="Set data"/>
+        <objectstore:retrieve config-ref="PartitionsStateConfig" key="Progress#[flowVars.Data.Id]" doc:name="Get current progress value"/>
+        <enricher source="#[payload]" target="#[payload.Progress]" doc:name="Message Enricher">
+            <set-payload value="#[payload.Progress + flowVars.Data.Progress]" doc:name="Add Progress"/>
+        </enricher>
+        <objectstore:store config-ref="PartitionsStateConfig" key="Progress#[flowVars.Data.Id]" value-ref="#[payload]" overwrite="true" doc:name="Save current progress value"/>
+    </flow>
+    <flow name="transfer-progress-update-sfdc" doc:name="transfer-progress-update-sfdc">
+        <poll doc:name="Poll">
+            <fixed-frequency-scheduler frequency="5000"/>
+            <objectstore:all-keys config-ref="PartitionsStateConfig" doc:name="Get keys of progress status"/>
+        </poll>
+        <expression-component doc:name="Filter keys"><![CDATA[newList = new ArrayList();
+
+for(int i= 0; i < payload.size(); i++){
+		if(payload[i].startsWith("Progress")){
+			newList.add(payload[i]);
+		}
+}
+
+payload = newList;]]></expression-component>
+        <foreach doc:name="For Each">
+            <enricher source="#[payload]" target="#[flowVars['ProgressData']]" doc:name="Message Enricher">
+                <objectstore:retrieve config-ref="PartitionsStateConfig" key="#[payload]" doc:name="Get progress value"/>
+            </enricher>
+            <expression-component doc:name="Set progress data"><![CDATA[progressBytes= (float)flowVars.ProgressData.Progress;
+totalBytes= (float)flowVars.ProgressData.Total;
+
+progressMessage = "";
+
+payload = totalBytes;
+
+if(totalBytes < 1024){
+	progressMessage = String.format("%d of %d Bytes", progressBytes, totalBytes);
+}
+else if(totalBytes < 1024 * 1014){
+	progressMessage = String.format("%.2f of %.2f KB", progressBytes/1024, totalBytes/1024);
+}
+else if(totalBytes < 1024 * 1014 * 1024){
+	progressMessage = String.format("%.2f of %.2f MB", progressBytes/1024/1024, totalBytes/1024/1024);
+}
+else {
+	progressMessage = String.format("%d of %d GB", progressBytes/1024/1024/1014, totalBytes/1024/1024/1014);
+}
+
+payload = [[ "Id" : flowVars.ProgressData.Id, "StatusMessage": progressMessage]];
+]]></expression-component>
+            <data-mapper:transform config-ref="Map_To_Submission_File__c2" doc:name="Map To Submission_File__c"/>
+            <sfdc:update-single config-ref="SalesforceConfig" type="Submission_File__c" doc:name="Salesforce"/>
+        </foreach>
+    </flow>
 </mule>

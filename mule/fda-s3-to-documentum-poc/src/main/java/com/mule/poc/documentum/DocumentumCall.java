@@ -10,6 +10,7 @@ import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.PartSource;
+import org.apache.velocity.runtime.Runtime;
 import org.mule.api.MuleEventContext;
 import org.mule.api.lifecycle.Callable;
 import org.mule.api.registry.MuleRegistry;
@@ -38,10 +39,10 @@ public class DocumentumCall implements Callable {
 		username = (String)registry.lookupObject("documentum.username");
 		password = (String)registry.lookupObject("documentum.password");
 		metadataJson = metadataJson.replace("{OBJECT_NAME}", (String)fileData.get("FileName"));
-		
+		byte[] payload = event.getMessage().getPayloadAsBytes();
 		Part[] parts = new Part[2];
 		PartSource metadata = new ByteArrayPartSource("metadata", metadataJson.getBytes("UTF-8"));
-		PartSource binary = new ByteArrayPartSource("binary", event.getMessage().getPayloadAsBytes());
+		PartSource binary = new ByteArrayPartSource("binary", payload);
 		parts[0] = new FilePart("metadata", metadata, "application/vnd.emc.documentum+json", "UTF-8");
 		parts[1] = new FilePart("binary", binary, "application/octet-stream", "UTF-8");
 
@@ -52,19 +53,16 @@ public class DocumentumCall implements Callable {
 		MultipartRequestEntity entity = new MultipartRequestEntity(parts, uploadPost.getParams());
 		uploadPost.setRequestEntity(entity);
 
-		int responseCode = httpClient.executeMethod(uploadPost);
-		String response = uploadPost.getResponseBodyAsString();
-		System.out.println(response);
+		int httpStatus = httpClient.executeMethod(uploadPost);
 		
-//		Map<String, BatchManager> batchManagerMap = event.getMuleContext().getRegistry().lookupByType(BatchManager.class);
-//		
-//		BatchManager batchManager = batchManagerMap.values().iterator().next();
-//		
-//		batchManager.getJobInstances("file-batch-processing").next()
-//		batchManager.getJobInstance(arg0, arg1)
-//		batchManager.getJobInstance("08c4e857-8087-11e4-842a-685b35cd0642", "08c4e857-8087-11e4-842a-685b35cd0642").
-//		Thread.sleep(5000);
+		if(httpStatus < 200 || httpStatus >= 300){
+			throw new RuntimeException("Error sending file part: "+ (String)fileData.get("FileName")+" to documentum");
+		}
+		
+		
+		
 		return event.getMessage();
 	}
+	
 
 }

@@ -96,6 +96,7 @@ http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/q
         <batch:threading-profile poolExhaustedAction="WAIT" maxThreadsActive="8" maxThreadsIdle="1" threadTTL="360000" threadWaitTimeout="300000"/>
         <batch:input>
             <set-variable variableName="OriginalFileItem" value="#[payload]" doc:name="Set original file item"/>
+            <objectstore:store config-ref="PartitionsStateConfig" key="Progress#[payload.Id]" value-ref="#[[ &quot;Progress&quot;: 0 , &quot;Id&quot;: payload.Id, &quot;Total&quot;:  payload.FileSizeInBytes]]" overwrite="true" doc:name="Set progress data"/>
             <flow-ref name="documentum-create-filefolder" doc:name="Create file folder"/>
             <expression-component doc:name="Split data of file by parts"><![CDATA[// Create a new collection to store the list of data to retrieve the file by parts
 aux =new ArrayList();
@@ -104,13 +105,13 @@ aux =new ArrayList();
 maxSize = ${file.max.size}; // 10bytes
 
 if(payload.FileSizeInBytes <= maxSize){
-		aux.add( { "fileName": payload.FileName,  "bytesFrom": 0, "bytesTo": (long)payload.FileSizeInBytes-1 , "relativeURL":payload.RelativeS3Url , "ParentFolderId":payload.ParentFolderId˙});
+		aux.add( { "fileName": payload.FileName,  "bytesFrom": 0, "bytesTo": (long)payload.FileSizeInBytes-1 , "relativeURL":payload.RelativeS3Url , "ParentFolderId":payload.ParentFolderId, "Progress": payload.FileSizeInBytes˙});
 }else{
 	for(long bytesFrom = 0; bytesFrom < payload.FileSizeInBytes; bytesFrom = (long)bytesFrom+maxSize ){	
 			bytesTo = (long) (bytesFrom +maxSize  >payload.FileSizeInBytes   ? (payload.FileSizeInBytes - 1)  :  (bytesFrom +maxSize - 1));
-
-			System.out.println(String.format("Bytes from: %s to %s", bytesFrom, bytesTo));
-			aux.add( { "fileName": String.format("part_%06d",  aux.size())   ,  "bytesFrom": bytesFrom, "bytesTo": bytesTo, "relativeURL":payload.RelativeS3Url, "ParentFolderId":payload.PartialFolderId });
+			progress = bytesTo - bytesFrom+1;
+			//System.out.println(String.format("Bytes from: %s to %s", bytesFrom, bytesTo));
+			aux.add( { "fileName": String.format("part_%06d",  aux.size())   ,  "bytesFrom": bytesFrom, "bytesTo": bytesTo, "relativeURL":payload.RelativeS3Url, "ParentFolderId":payload.PartialFolderId, "Progress": progress });
 	}
 }
 
@@ -129,12 +130,15 @@ payload = aux;
         </batch:input>
         <batch:process-records>
             <batch:step name="get-file-from-amazon">
-                <batch:set-record-variable variableName="fileData" value="#[[ &quot;FileName&quot;: payload.fileName, &quot;ParentFolderId&quot;: payload.ParentFolderId]]" doc:name="Record Variable"/>
+                <batch:set-record-variable variableName="fileData" value="#[[ &quot;FileName&quot;: payload.fileName, &quot;ParentFolderId&quot;: payload.ParentFolderId, &quot;Progress&quot;: payload.Progress]]" doc:name="Record Variable"/>
                 <flow-ref name="amazons3-retrieve-file" doc:name="get file from amazon s3"/>
                 <flow-ref name="documentum-add-document-file" doc:name="add file to documentum"/>
+                <set-payload value="#[[&quot;Id&quot;: flowVars.OriginalFileItem.Id, &quot;Progress&quot;:  recordVars.fileData.Progress ]]" doc:name="Set info"/>
+                <vm:outbound-endpoint exchange-pattern="one-way" path="${vm.progress.refresh}" connector-ref="VMConfig" doc:name="Add progress"/>
             </batch:step>
         </batch:process-records>
         <batch:on-complete>
+            <objectstore:remove config-ref="PartitionsStateConfig" key="Progress#[flowVars.OriginalFileItem.Id]" ignoreNotExists="true" doc:name="Remove progress data"/>
             <choice doc:name="Choice">
                 <when expression="#[payload.loadedRecords &gt; 1 &amp;&amp; payload.failedRecords == 0]">
                     <flow-ref name="sfdc-update-status" doc:name="update SFDC status"/>
@@ -143,13 +147,13 @@ payload = aux;
                     <objectstore:store config-ref="PartitionsStateConfig" key="#[flowVars.OriginalFileItem.Id]" value-ref="#[flowVars[&quot;DocumentumFileURL&quot;]]" doc:name="Enable documentum processing status check" overwrite="true"/>
                 </when>
                 <otherwise>
-                    <logger level="INFO" doc:name="Logger"/>
+                    <logger level="INFO" doc:name="Logger" message="Error processing the file"/>
                 </otherwise>
             </choice>
         </batch:on-complete>
     </batch:job>
     <flow name="sfdc-update-status" doc:name="sfdc-update-status" processingStrategy="synchronous">
-        <set-payload value="#[[ &quot;State&quot;: &quot;PROCESSING&quot;, &quot;StateDescription&quot; : &quot;Pending for Documentum processing&quot;, &quot;Id&quot; :  flowVars.OriginalFileItem.Id]]" doc:name="Set SFDC state data"/>
+        <set-payload value="#[[ &quot;State&quot;: &quot;PROCESSING&quot;, &quot;StateDescription&quot; : &quot;Transfer completed. Pending for Documentum processing&quot;, &quot;Id&quot; :  flowVars.OriginalFileItem.Id]]" doc:name="Set SFDC state data"/>
         <data-mapper:transform config-ref="Map_To_Submission_File__c" doc:name="Map To Submission_File__c"/>
         <sfdc:update-single config-ref="SalesforceConfig" type="Submission_File__c" doc:name="Update submission file">
         </sfdc:update-single>
@@ -158,18 +162,28 @@ payload = aux;
         <set-payload value="#[[]]" doc:name="Set Payload"/>
         <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.merge.url}?filePath=#[flowVars.DocumentumFileURL  ]" doc:name="Trigger documentum processing"/>
         <object-to-string-transformer doc:name="Object to String"/>
-        <logger message="Response of Custom REST MERGE: #[ payload:java.lang.String]" level="INFO" doc:name="Logger"/>
+<!--         <logger message="Response of Custom REST MERGE: #[ payload:java.lang.String]" level="INFO" doc:name="Logger"/> -->
     </flow>
     <sub-flow name="documentum-get-processing-status" doc:name="documentum-get-processing-status">
         <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.status.url}?filePath=#[payload]" doc:name="Get documentum processing status"/>
         <object-to-string-transformer doc:name="Object to String"/>
-        <logger message="Documentum processing status:#[payload]" level="INFO" doc:name="Logger"/>
+<!--         <logger message="Documentum processing status:#[payload]" level="INFO" doc:name="Logger"/> -->
     </sub-flow>
     <flow name="sfdc-status-trigger-update" doc:name="sfdc-status-trigger-update">
         <quartz:inbound-endpoint jobName="trigger-update-sfdc-status" repeatInterval="30000" responseTimeout="10000" doc:name="Quartz">
             <quartz:event-generator-job/>
         </quartz:inbound-endpoint>
         <objectstore:all-keys config-ref="PartitionsStateConfig" doc:name="Get pending jobs"/>
+        <expression-component doc:name="Expression"><![CDATA[newList = new ArrayList();
+
+for(int i= 0; i < payload.size(); i++){
+		if(payload[i].startsWith("Documentum")){
+			newList.add(payload[i]);
+		}
+}
+
+payload = newList;]]></expression-component>
+        
         <foreach doc:name="For Each">
             <set-variable variableName="SFDCID" value="#[payload	]" doc:name="Set SFDC id"/>
             <objectstore:retrieve config-ref="PartitionsStateConfig" key="#[payload]" targetProperty="#[payload]" doc:name="Get stored information"/>
@@ -201,7 +215,7 @@ payload = aux;
         <data-mapper:transform config-ref="Map_To_Submission_File__c_1" doc:name="Map To Submission_File__c"/>
         <sfdc:update-single config-ref="SalesforceConfig" type="Submission_File__c" doc:name="Salesforce">
         </sfdc:update-single>
-        <logger message="Salesforce: #[payload]" level="INFO" doc:name="Logger"/>
+<!--         <logger message="Salesforce: #[payload]" level="INFO" doc:name="Logger"/> -->
     </sub-flow>
     <sub-flow name="documentum-create-file-folder-item" doc:name="documentum-create-file-folder-item">
         <set-variable variableName="SubmissionFolderName" value="Submission_#[payload.ParentSubmissionNumber]" doc:name="Set Submission foldername"/>
