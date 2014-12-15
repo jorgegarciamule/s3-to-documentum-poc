@@ -110,7 +110,7 @@ public class Manager {
 			if (StringUtils.isNotEmpty(md5)) {
 				byte[] calculatedMD5Btyes = ((DigestOutputStream) output)
 						.getMessageDigest().digest();
-				String calculatedMD5 = Hex.encodeHexString(calculatedMD5Btyes);
+				String calculatedMD5 = MD5Utils.bytesToHex(calculatedMD5Btyes);
 				log.info(String.format("Original MD5: %s\nCalculated MD5: %s",
 						md5, calculatedMD5));
 				log.info("MD5 " + (md5.equals(calculatedMD5) ? "" : "dont't ") + "matches.");

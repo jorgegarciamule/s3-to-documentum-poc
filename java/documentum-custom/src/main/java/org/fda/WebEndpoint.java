@@ -10,6 +10,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
+import org.apache.commons.codec.binary.Hex;
+
 import com.documentum.fc.client.IDfSession;
 
 @Path("/")
@@ -28,6 +30,7 @@ public class WebEndpoint {
 	@GET
 	@Path("ping")
 	public String ping() {
+		String calculatedMD5 = MD5Utils.bytesToHex(new byte[]{1,23,12,33,12,12});
 		return "pong";
 	}
 
@@ -110,7 +113,9 @@ public class WebEndpoint {
 
 	private Thread getThread(String name) {
 		Thread thread = null;
+		log.info("threadName:   " + name);
 		for (Thread t : Thread.getAllStackTraces().keySet()) {
+			log.info("comparing to: " + t.getName());
 			if (t.getName().equals(name))
 				thread = t;
 			break;
