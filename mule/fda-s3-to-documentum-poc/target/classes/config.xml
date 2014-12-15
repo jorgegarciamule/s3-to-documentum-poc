@@ -16,6 +16,8 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
 		doc:name="VM" />
 	<sfdc:config name="SalesforceConfig" username="${sfdc.username}"
 		password="${sfdc.password}" securityToken="${sfdc.securityToken}"
-		doc:name="Salesforce" url="${sfdc.url}"/>
+		doc:name="Salesforce" url="${sfdc.url}">
+        <reconnect count="5"/>
+    </sfdc:config>
 
 </mule>

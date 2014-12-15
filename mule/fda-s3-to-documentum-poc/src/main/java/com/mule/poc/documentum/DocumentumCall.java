@@ -33,7 +33,6 @@ public class DocumentumCall implements Callable {
 	public Object onCall(MuleEventContext event) throws Exception {
 		MuleRegistry registry = event.getMuleContext().getRegistry();
 		
-		
 		HashMap<String,Object> fileData = (HashMap<String,Object>)(( Record)event.getMessage().getProperty("BATCH_RECORD", PropertyScope.INVOCATION)).getVariable("fileData");
 				System.out.println();
 		url = url.replace("{FOLDER_ID}", (String)fileData.get("ParentFolderId")).replace("{HOST}", (String)registry.lookupObject("documentum.rest.host")).replace("{PORT}", (String)registry.lookupObject("documentum.rest.port"));
@@ -56,8 +55,10 @@ public class DocumentumCall implements Callable {
 
 		int httpStatus = httpClient.executeMethod(uploadPost);
 		
+		
+		
 		if(httpStatus < 200 || httpStatus >= 300){
-			throw new RuntimeException("Error sending file part: "+ (String)fileData.get("FileName")+" to documentum");
+			throw new RuntimeException("Error sending file part: "+ (String)fileData.get("FileName")+" to documentum. " + uploadPost.getResponseBodyAsString());
 		}
 		
 		

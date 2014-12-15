@@ -33,8 +33,9 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
             <data-mapper:transform config-ref="List_Submission_File__c__To_Map" doc:name="List&lt;Submission_File__c&gt; To Map"/>
         </batch:input>
         <batch:process-records>
-            <batch:step name="validate-valid-link">
-                <flow-ref name="validate-s3link" doc:name="validate link"/>
+            <batch:step name="validate-link">
+                <logger message="File with id: #[payload.Id] Size in bytes: #[payload.FileSizeInBytes]" level="INFO" doc:name="Logger"/>
+                <flow-ref name="validate-s3link" doc:name="Validate link"/>
             </batch:step>
             <batch:step name="create-submission-folder" accept-expression="recordVars[&quot;validLink&quot;]">
                 <enricher source="#[payload]" target="#[payload['ParentFolderId']]" doc:name="Message Enricher">

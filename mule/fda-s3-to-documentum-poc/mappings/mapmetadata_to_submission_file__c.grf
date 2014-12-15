@@ -78,9 +78,7 @@ output.__id = input.__id;
 output.Id = input.Id;
 output.FDA_File_Transfer_Status__c = input.FDAFileTransferStatus;
 output.FDA_File_Transfer_Status_Message__c = input.FDAFileTransferStatusMessage;
-output.Copied_to_FDA__c = input.CopiedToFDA;
-output.Parent_Folder_Id__c = input.ParentFolderId;
-output.WIP__c = input.WorkInProgress;]]></attr>
+output.Parent_Folder_Id__c = input.ParentFolderId;]]></attr>
 </Node>
 <Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">
 <attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>

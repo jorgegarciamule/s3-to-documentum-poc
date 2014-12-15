@@ -69,8 +69,14 @@ output.FileSizeInBytes =input.File_Size_in_Bytes__c;
 output.ParentFolderId = input.Parent_Folder_Id__c;
 output.ParentSubmissionNumber = input.Parent_Submission_Number__c;
 output.S3URL = input.S3_URL__c;
-output.WorkInProgress = input.WIP__c;
-output.RelativeS3Url = input.S3_URL__c.replace("http:","https:").replace("https://s3.amazonaws.com/","");
+
+
+if(input.S3_URL__c == null){
+	output.RelativeS3Url = "" ;
+}
+else{
+	output.RelativeS3Url = input.S3_URL__c.replace("http:","https:").replace("https://s3.amazonaws.com/","");
+}
 ]]></attr>
 </Node>
 <Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">

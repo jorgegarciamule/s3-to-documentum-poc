@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:objectstore="http://www.mulesoft.org/schema/mule/objectstore" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:objectstore="http://www.mulesoft.org/schema/mule/objectstore" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:json="http://www.mulesoft.org/schema/mule/json"
 	xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:https="http://www.mulesoft.org/schema/mule/https"
 	xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
@@ -19,17 +19,16 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 http://www.mulesoft.org/schema/mule/objectstore http://www.mulesoft.org/schema/mule/objectstore/current/mule-objectstore.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
-http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd">
+http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
 	
 	<data-mapper:config name="JSON_To_Pojo"
 		transformationGraphPath="json_to_pojo.grf" doc:name="JSON_To_Pojo" />
     <objectstore:config name="PartitionsStateConfig" persistent="true" doc:name="ObjectStore"/>
     <data-mapper:config name="Map_To_Submission_File__c" transformationGraphPath="map_to_submission_file__c.grf" doc:name="Map_To_Submission_File__c"/>
     <data-mapper:config name="Map_To_Submission_File__c_1" transformationGraphPath="map_to_submission_file__c_1.grf" doc:name="Map_To_Submission_File__c_1"/>
+    <objectstore:config name="ProgressDataConfig" persistent="true" doc:name="ObjectStore"/>
 	<flow name="documentum-create-folder" doc:name="documentum-create-folder" processingStrategy="synchronous">
-		<logger
-			message="Creating folder: &quot;Submission_&quot; + payload.ParentSubmissionNumber in documentum"
-			level="INFO" doc:name="Logger" />
         <set-variable variableName="ParentFolderId" value="#[payload.ParentFolderId]" doc:name="Set parent folder id"/>
 		<set-payload
 			value="{&quot;type&quot;: &quot;dm_folder&quot;, &quot;properties&quot;: { &quot;object_name&quot;: &quot;#[payload.FolderName]&quot;}}"
@@ -96,28 +95,50 @@ http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/q
         <batch:threading-profile poolExhaustedAction="WAIT" maxThreadsActive="8" maxThreadsIdle="1" threadTTL="360000" threadWaitTimeout="300000"/>
         <batch:input>
             <set-variable variableName="OriginalFileItem" value="#[payload]" doc:name="Set original file item"/>
-            <objectstore:store config-ref="PartitionsStateConfig" key="Progress#[payload.Id]" value-ref="#[[ &quot;Progress&quot;: 0 , &quot;Id&quot;: payload.Id, &quot;Total&quot;:  payload.FileSizeInBytes]]" overwrite="true" doc:name="Set progress data"/>
+            <choice doc:name="Choice">
+                <when expression="#[payload.FileSizeInBytes &gt; ${file.max.size}]">
+                    <objectstore:store config-ref="ProgressDataConfig" key="#[payload.Id]" value-ref="#[[ &quot;Progress&quot;: 0 , &quot;Id&quot;: payload.Id, &quot;Total&quot;:  payload.FileSizeInBytes]]" overwrite="true" doc:name="Set progress data"/>
+                </when>
+                <otherwise>
+                    <logger level="INFO" doc:name="Logger"/>
+                </otherwise>
+            </choice>
             <flow-ref name="documentum-create-filefolder" doc:name="Create file folder"/>
-            <expression-component doc:name="Split data of file by parts"><![CDATA[// Create a new collection to store the list of data to retrieve the file by parts
+            <scripting:component doc:name="Split data of file by parts">
+                <scripting:script engine="Groovy"><![CDATA[// Create a new collection to store the list of data to retrieve the file by parts
 aux =new ArrayList();
 
-//maxSize = 10 *1024*1024; // 10MB
 maxSize = ${file.max.size}; // 10bytes
 
+			if( payload.FileSizeInBytes == null){
+	throw new RuntimeException("payload.FileSizeInBytes cannot be null");
+}
+
 if(payload.FileSizeInBytes <= maxSize){
-		aux.add( { "fileName": payload.FileName,  "bytesFrom": 0, "bytesTo": (long)payload.FileSizeInBytes-1 , "relativeURL":payload.RelativeS3Url , "ParentFolderId":payload.ParentFolderId, "Progress": payload.FileSizeInBytes˙});
+		aux.add( [ "fileName": payload.FileName,  "bytesFrom": 0, "bytesTo": (long)payload.FileSizeInBytes-1 , "relativeURL":payload.RelativeS3Url , "ParentFolderId":payload.ParentFolderId, "Progress": payload.FileSizeInBytes]);
 }else{
 	for(long bytesFrom = 0; bytesFrom < payload.FileSizeInBytes; bytesFrom = (long)bytesFrom+maxSize ){	
 			bytesTo = (long) (bytesFrom +maxSize  >payload.FileSizeInBytes   ? (payload.FileSizeInBytes - 1)  :  (bytesFrom +maxSize - 1));
-			progress = bytesTo - bytesFrom+1;
-			//System.out.println(String.format("Bytes from: %s to %s", bytesFrom, bytesTo));
-			aux.add( { "fileName": String.format("part_%06d",  aux.size())   ,  "bytesFrom": bytesFrom, "bytesTo": bytesTo, "relativeURL":payload.RelativeS3Url, "ParentFolderId":payload.PartialFolderId, "Progress": progress });
+			progress = (double)(bytesTo - bytesFrom+1);
+
+			if(progress == null){
+				System.out.println(String.format("Progress: %s", progress));
+			}
+
+			aux.add( [ "fileName": String.format("part_%06d",  aux.size())   ,  "bytesFrom": bytesFrom, "bytesTo": bytesTo, "relativeURL":payload.RelativeS3Url, "ParentFolderId":payload.PartialFolderId, "Progress": progress ]);
 	}
 }
 
-
+try{
 flowVars["DocumentumFileURL"] = "${documentum.submissions.folder.path}/Submission_" +payload.ParentSubmissionNumber + "/"+ payload.FileName;
-payload = aux;
+flowVars["RelativeS3Url"] = payload.RelativeS3Url;
+flowVars["ParentFolderId"] = payload.ParentFolderId;
+}
+catch(Exception ex){
+	flowVars["DocumentumFileURL"] = "";	
+}
+
+return aux;
 
 
 
@@ -126,33 +147,34 @@ payload = aux;
 
 
 
-]]></expression-component>
+]]></scripting:script>
+            </scripting:component>
         </batch:input>
         <batch:process-records>
             <batch:step name="get-file-from-amazon">
-                <until-successful maxRetries="5" millisBetweenRetries="5000" doc:name="Until Successful" synchronous="true">
-                    <processor-chain doc:name="Processor Chain">
+<!--                 <until-successful maxRetries="5" millisBetweenRetries="5000" doc:name="Until Successful" synchronous="true"> -->
+<!--                     <processor-chain doc:name="Processor Chain"> -->
                         <batch:set-record-variable variableName="fileData" value="#[[ &quot;FileName&quot;: payload.fileName, &quot;ParentFolderId&quot;: payload.ParentFolderId, &quot;Progress&quot;: payload.Progress]]" doc:name="Set file data"/>
                         <flow-ref name="amazons3-retrieve-file" doc:name="get file from amazon s3"/>
                         <flow-ref name="documentum-add-document-file" doc:name="add file to documentum"/>
                         <set-payload value="#[[&quot;Id&quot;: flowVars.OriginalFileItem.Id, &quot;Progress&quot;:  recordVars.fileData.Progress ]]" doc:name="Set info"/>
                         <vm:outbound-endpoint exchange-pattern="one-way" path="${vm.progress.refresh}" connector-ref="VMConfig" doc:name="Add progress"/>
-                    </processor-chain>
-                </until-successful>
+<!--                     </processor-chain> -->
+<!--                 </until-successful> -->
             </batch:step>
         </batch:process-records>
         <batch:on-complete>
             
             <async doc:name="Async">
-            <objectstore:remove config-ref="PartitionsStateConfig" key="Progress#[flowVars.OriginalFileItem.Id]" ignoreNotExists="true" doc:name="Remove progress data"/>
+            <objectstore:remove config-ref="ProgressDataConfig" key="#[flowVars.OriginalFileItem.Id]" ignoreNotExists="true" doc:name="Remove progress data"/>
             </async>
             <choice doc:name="Choice">
                 <when expression="#[payload.loadedRecords &gt; 1 &amp;&amp; payload.failedRecords == 0]">
                     <set-payload value="#[[ &quot;State&quot;: &quot;PROCESSING&quot;, &quot;StateDescription&quot; : &quot;Transfer completed. Pending for Documentum processing&quot;, &quot;Id&quot; :  flowVars.OriginalFileItem.Id]]" doc:name="Set SFDC state data"/>
                     <flow-ref name="sfdc-update-status" doc:name="update SFDC status"/>
                     <flow-ref name="document-start-file-processing" doc:name="Trigger documentum processing for joining files"/>
-                    <set-payload value="#[&quot;DocumentumFileURL&quot;: flowVars.DocumentumFileURL , &quot;SFDC_Id&quot;: flowVars.OriginalFileItem.Id]]" doc:name="Set Documetum file URL in Payload"/>
-                    <objectstore:store config-ref="PartitionsStateConfig" key="Documentum#[flowVars.OriginalFileItem.Id]" value-ref="#[flowVars[&quot;DocumentumFileURL&quot;]]" doc:name="Enable documentum processing status check" overwrite="true"/>
+                    <set-payload value="#[[&quot;DocumentumFileURL&quot;: flowVars.DocumentumFileURL , &quot;SFDC_Id&quot;: flowVars.OriginalFileItem.Id]]" doc:name="Set Documetum file URL in Payload"/>
+                    <objectstore:store config-ref="PartitionsStateConfig" key="Documentum#[flowVars.OriginalFileItem.Id]" value-ref="#[[ &quot;DocumentumFileURL&quot;: flowVars[&quot;DocumentumFileURL&quot;], &quot;MD5&quot;: flowVars.OriginalFileItem.MD5]]" doc:name="Enable documentum processing status check" overwrite="true"/>
                 </when>
                 <when expression="#[payload.loadedRecords == 1 &amp;&amp; payload.failedRecords == 0]">
                     <set-payload value="#[[ &quot;State&quot;: &quot;PROCESSED&quot;, &quot;StateDescription&quot; : &quot;The file was uploaded to documentum successfuly&quot;, &quot;Id&quot; :  flowVars.OriginalFileItem.Id]]" doc:name="Set SFDC state data"/>
@@ -170,12 +192,12 @@ payload = aux;
         </sfdc:update-single>
     </flow>
     <flow name="document-start-file-processing" doc:name="document-start-file-processing" processingStrategy="synchronous">
-        <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.merge.url}?filePath=#[flowVars.DocumentumFileURL]&amp;md5=#[flowVars.OriginalFileItem.MD5]" doc:name="Trigger documentum processing"/>
+        <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.merge.url}?filePath=#[flowVars.DocumentumFileURL]" doc:name="Trigger documentum processing"/>
         <object-to-string-transformer doc:name="Object to String"/>
 <!--         <logger message="Response of Custom REST MERGE: #[ payload:java.lang.String]" level="INFO" doc:name="Logger"/> -->
     </flow>
     <sub-flow name="documentum-get-processing-status" doc:name="documentum-get-processing-status">
-        <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.status.url}?filePath=#[payload]" doc:name="Get documentum processing status"/>
+        <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://${documentum.customrest.status.url}?filePath=#[payload.DocumentumFileURL]&amp;MD5=#[payload.MD5]" doc:name="Get documentum processing status"/>
         <object-to-string-transformer doc:name="Object to String"/>
 <!--         <logger message="Documentum processing status:#[payload]" level="INFO" doc:name="Logger"/> -->
     </sub-flow>
@@ -184,15 +206,15 @@ payload = aux;
             <fixed-frequency-scheduler frequency="${documentum.polling.frequency}"/>
             <objectstore:all-keys config-ref="PartitionsStateConfig" doc:name="Get pending jobs"/>
         </poll>
-        <expression-component doc:name="Filter documentum check status"><![CDATA[newList = new ArrayList();
+        <expression-component doc:name="Expression"><![CDATA[aux = new ArrayList();
 
-for(int i= 0; i < payload.size(); i++){
-		if(payload[i].startsWith("Documentum")){
-			newList.add(payload[i]);
-		}
+for(int i = 0; i < payload.size(); i++){
+	if(payload[i].startsWith("Documentum")){
+		aux.add(payload[i]);
+	}
 }
 
-payload = newList;]]></expression-component>
+payload = aux;]]></expression-component>
         
         <foreach doc:name="For Each">
             <set-variable variableName="SFDCID" value="#[payload	.replace(&quot;Documentum&quot;, &quot;&quot;)]" doc:name="Set SFDC id"/>
@@ -201,26 +223,16 @@ payload = newList;]]></expression-component>
                 <flow-ref name="documentum-get-processing-status" doc:name="Get documentum status"/>
             </enricher>
             <choice doc:name="Choice">
-                <when expression="#[flowVars.DPStatus == &quot;0 - Merge completed&quot;]">
+                     <when expression="#[flowVars.DPStatus == &quot;0 - Merge completed&quot;]">
                     <set-payload value="#[[  &quot;State&quot;: &quot;PROCESSED&quot;, &quot;StateDescription&quot; : &quot;Documentum:&quot; + flowVars.DPStatus, &quot;Id&quot; :  flowVars.SFDCID, &quot;CopiedToFDA&quot;: true ]]" doc:name="Set SFDC state PROCESSED"/>
-                    <async doc:name="Async">
-                        <objectstore:remove config-ref="PartitionsStateConfig" key="Documentum#[flowVars.SFDCID]" ignoreNotExists="true" doc:name="Remove processed item with error"/>
-                    </async>
                     <flow-ref name="sfdc-update-documentum-status" doc:name="Update SFDC status"/>
                 </when>
                 <when expression="#[flowVars.DPStatus.startsWith(&quot;2&quot;)]">
                     <set-payload value="#[[  &quot;State&quot;: &quot;ERROR&quot;, &quot;StateDescription&quot; : &quot;Documentum:&quot; + flowVars.DPStatus, &quot;Id&quot; :  flowVars.SFDCID, &quot;CopiedToFDA&quot;: false ]]" doc:name="SFDC ERROR STATE"/>
-                    <async doc:name="Async">
-                        <objectstore:remove config-ref="PartitionsStateConfig" key="Documentum#[flowVars.SFDCID]" ignoreNotExists="true" doc:name="Copy_of_Remove processed item with error"/>
-                    </async>
                     <flow-ref name="sfdc-update-documentum-status" doc:name="Update SFDC status"/>
-                </when>
-                <when expression="#[flowVars.DPStatus == &quot;1 - Status not found&quot;]">
-                    <logger message="Pending for documentum processing" level="INFO" doc:name="Logger"/>
                 </when>
                 <otherwise>
-                    <set-payload value="#[[  &quot;State&quot;: &quot;PROCESSING&quot;, &quot;StateDescription&quot; : &quot;Documentum:&quot; + flowVars.DPStatus, &quot;Id&quot; :  flowVars.SFDCID ]]" doc:name="Set SFDC state PENDING"/>
-                    <flow-ref name="sfdc-update-documentum-status" doc:name="Update SFDC status"/>
+                    <logger message="Pending for documentum processing" level="INFO" doc:name="Logger"/>
                 </otherwise>
             </choice>
         </foreach>
