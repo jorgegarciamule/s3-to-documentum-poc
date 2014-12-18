@@ -30,8 +30,23 @@ public class WebEndpoint {
 	@GET
 	@Path("ping")
 	public String ping() {
-		String calculatedMD5 = MD5Utils.bytesToHex(new byte[]{1,23,12,33,12,12});
+		String calculatedMD5 = MD5Utils.bytesToHex(new byte[] { 1, 23, 12, 33,
+				12, 12 });
 		return "pong";
+	}
+
+	@GET
+	@Path("folder/delete")
+	public String delete(@QueryParam("folderPath") final String filePath) {
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				IDfSession session = manager.getSession();
+				manager.deleteFolder(filePath, session);
+			}
+		};
+		t.start();
+		return "deleting";
 	}
 
 	@GET()
