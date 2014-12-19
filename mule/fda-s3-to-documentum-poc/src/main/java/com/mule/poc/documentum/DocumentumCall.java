@@ -33,7 +33,7 @@ public class DocumentumCall implements Callable {
 	public Object onCall(MuleEventContext event) throws Exception {
 		MuleRegistry registry = event.getMuleContext().getRegistry();
 		
-		HashMap<String,Object> fileData = (HashMap<String,Object>)(( Record)event.getMessage().getProperty("BATCH_RECORD", PropertyScope.INVOCATION)).getVariable("fileData");
+		HashMap<String,Object> fileData = (HashMap<String,Object>)(event.getMessage().getProperty("fileData", PropertyScope.INVOCATION));
 				System.out.println();
 		url = url.replace("{FOLDER_ID}", (String)fileData.get("ParentFolderId")).replace("{HOST}", (String)registry.lookupObject("documentum.rest.host")).replace("{PORT}", (String)registry.lookupObject("documentum.rest.port"));
 		username = (String)registry.lookupObject("documentum.username");

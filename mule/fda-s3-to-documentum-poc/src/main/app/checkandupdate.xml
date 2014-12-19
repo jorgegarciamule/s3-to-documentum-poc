@@ -71,5 +71,8 @@ payload = [ "Id" : payload.Id, "StatusMessage": progressMessage];]]></scripting:
                 </otherwise>
             </choice>
         </foreach>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <logger message="Error trying to refresh SFDC progress status" level="WARN" doc:name="Logger"/>
+        </catch-exception-strategy>
     </flow>
 </mule>

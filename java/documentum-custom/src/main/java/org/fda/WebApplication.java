@@ -18,6 +18,7 @@ public class WebApplication extends Application{
     	try {
     		Properties p = new Properties();
 			p.load(getClass().getResourceAsStream("/dfc.properties"));
+			p.load(getClass().getResourceAsStream("/custom.properties"));
 			singletons.add(new WebEndpoint(p));
 		} catch (IOException e) {
 			throw new RuntimeException(e);

@@ -27,8 +27,8 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         <batch:input>
             <poll doc:name="Poll">
-                <fixed-frequency-scheduler frequency="${polling.frequency}"/>
-                <sfdc:query config-ref="SalesforceConfig" query="dsql:SELECT Copied_to_FDA__c,FDA_File_Transfer_Status_Message__c,FDA_File_Transfer_Status__c,File_Name__c,File_Size_in_Bytes__c,Id,Parent_Folder_Id__c,Parent_Submission_Number__c,S3_URL__c,WIP__c FROM Submission_File__c WHERE  (FDA_File_Transfer_Status__c = '' OR FDA_File_Transfer_Status__c = 'NOT PROCESSED') AND Copied_to_FDA__c = false AND IsDeleted = false" fetchSize="${page.size}" doc:name="Get submissions files"/>
+                <fixed-frequency-scheduler frequency="${polling.frequency}" timeUnit="HOURS"/>
+                <sfdc:query config-ref="SalesforceConfig" query="dsql:SELECT Copied_to_FDA__c,FDA_File_Transfer_Status_Message__c,FDA_File_Transfer_Status__c,File_Name__c,File_Size_in_Bytes__c,Id,Parent_Folder_Id__c,Parent_Submission_Number__c,S3_URL__c,WIP__c FROM Submission_File__c WHERE  (FDA_File_Transfer_Status__c = '' OR FDA_File_Transfer_Status__c = 'NOT PROCESSED') AND Copied_to_FDA__c = false AND IsDeleted = false AND WIP__c = false AND Parent_Submission_Status__c = 'Submitted' AND Parent_Submission_Number__c &lt;&gt; null AND Parent_Submission_Number__c &lt;&gt; ''" fetchSize="${page.size}" doc:name="Get submissions files"/>
             </poll>
             <data-mapper:transform config-ref="List_Submission_File__c__To_Map" doc:name="List&lt;Submission_File__c&gt; To Map"/>
         </batch:input>
@@ -67,14 +67,12 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
     </sub-flow>
     <sub-flow name="validate-s3link" doc:name="validate-s3link">
         <logger message="validating: #[payload.S3URL]" level="INFO" doc:name="Logger"/>
-        <enricher   doc:name="Message Enricher">
-            <https:outbound-endpoint exchange-pattern="request-response" host="${s3.host}" port="443" path="#[payload.RelativeS3Url]" method="GET" doc:name="Get head of file">
+        <enricher   doc:name="Message Enricher" source="#[message.inboundProperties['http.status'] &gt;= 200 &amp;&amp; message.inboundProperties['http.status'] &lt; 300]" target="#[recordVars[&quot;validLink&quot;]]">
+            <https:outbound-endpoint exchange-pattern="request-response" host="${s3.host}" port="443" path="#[payload.RelativeS3Url]" method="GET" doc:name="Get head of file" connector-ref="S3_HTTP_HTTPS">
             	<message-properties-transformer> 
             		<add-message-property key="Range" value="bytes=0-0" />
             	</message-properties-transformer>
             </https:outbound-endpoint>
-            <enrich source="#[message.inboundProperties['http.status'] &gt;= 200 &amp;&amp; message.inboundProperties['http.status'] &lt; 300]" target="#[recordVars[&quot;validLink&quot;]]"/>
-            <enrich source="#[message.inboundProperties[&quot;ETag&quot;].replace('&quot;', '')]" target="#[payload[&quot;MD5&quot;]]"/>
         </enricher>
         <choice doc:name="Choice">
             <when expression="#[recordVars[&quot;validLink&quot;]]">
@@ -89,7 +87,7 @@ payload.FDAFileTransferStatusMessage = "Initialiting process to download files f
             </when>
             <otherwise>
                 <expression-component doc:name="Set ERROR status"><![CDATA[payload.FDAFileTransferStatus = "ERROR";
-payload.FDAFileTransferStatusMessage = "The download link is invalid or has expired";
+payload.FDAFileTransferStatusMessage = "The download link is ianvalid or has expired";
 ]]></expression-component>
                 <logger level="INFO" doc:name="Logger"/>
             </otherwise>

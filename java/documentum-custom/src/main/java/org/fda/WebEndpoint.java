@@ -10,10 +10,13 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
+import org.apache.commons.codec.binary.Hex;
+
 import com.documentum.fc.client.IDfSession;
 
 @Path("/")
 public class WebEndpoint {
+	private static final String REGEX_THREAD_NAME = "[^a-zA-Z0-9-]";
 	private Logger log = Logger.getAnonymousLogger();
 	private Manager manager;
 
@@ -27,14 +30,16 @@ public class WebEndpoint {
 	@GET
 	@Path("ping")
 	public String ping() {
+		String calculatedMD5 = MD5Utils.bytesToHex(new byte[]{1,23,12,33,12,12});
 		return "pong";
 	}
 
 	@GET()
 	@Path("file/merge")
-	// http://localhost:8080/documentum-custom/rest/file/merge?filePath=%2FTemp%2Fsubmition_0001%2Fexample_file.txt
-	public String mergeFile(@QueryParam("filePath") final String filePath) {
-		String threadName = filePath.replaceAll("[^a-zA-Z0-9]", "");
+	// http://localhost:8080/documentum-custom/rest/file/merge?filePath=%2FTemp%2Fsubmition_0001%2Fexample_file.txt&md5=
+	public String mergeFile(@QueryParam("filePath") final String filePath,
+			@QueryParam("md5") final String md5) {
+		String threadName = filePath.replaceAll(REGEX_THREAD_NAME, "");
 
 		Thread t = getThread(threadName);
 
@@ -45,9 +50,8 @@ public class WebEndpoint {
 					IDfSession session = null;
 					try {
 						session = manager.getSession();
-						manager.mergeDocument(filePath, session);
-						manager.updateThreadState(
-								"Merge completed");
+						manager.mergeDocument(filePath, md5, session);
+						manager.updateThreadState("Merge completed");
 					} catch (Exception e) {
 						log.log(Level.SEVERE, e.getMessage(), e);
 						manager.updateThreadState(
@@ -73,9 +77,9 @@ public class WebEndpoint {
 	@GET()
 	@Path("file/merge/status")
 	public String getMergeStatus(@QueryParam("filePath") final String filePath) {
-		String threadName = filePath.replaceAll("[^a-zA-Z0-9]", "");
+		String threadName = filePath.replaceAll(REGEX_THREAD_NAME, "");
 		Map<String, String> state = manager.getState(threadName);
-		if(state == null){
+		if (state == null) {
 			return "1 - Status not found";
 		}
 		return state.get(Manager.STATE_CODE) + " - " + state.get(Manager.STATE);
@@ -84,7 +88,7 @@ public class WebEndpoint {
 	@GET()
 	@Path("file/merge/stop")
 	public String stopMerge(@QueryParam("filePath") final String filePath) {
-		String threadName = filePath.replaceAll("[^a-zA-Z0-9]", "");
+		String threadName = filePath.replaceAll(REGEX_THREAD_NAME, "");
 
 		Thread t = getThread(threadName);
 		if (t == null) {
@@ -100,9 +104,18 @@ public class WebEndpoint {
 		return "0 - Thread " + threadName + " stopped";
 	}
 
+	@GET()
+	@Path("status/clear")
+	public String statusClear() {
+		manager.clearStates();
+		return "Status cleared";
+	}
+
 	private Thread getThread(String name) {
 		Thread thread = null;
+		log.info("threadName:   " + name);
 		for (Thread t : Thread.getAllStackTraces().keySet()) {
+			log.info("comparing to: " + t.getName());
 			if (t.getName().equals(name))
 				thread = t;
 			break;

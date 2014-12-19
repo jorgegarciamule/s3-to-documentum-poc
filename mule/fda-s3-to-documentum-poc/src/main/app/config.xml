@@ -17,7 +17,7 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
 	<sfdc:config name="SalesforceConfig" username="${sfdc.username}"
 		password="${sfdc.password}" securityToken="${sfdc.securityToken}"
 		doc:name="Salesforce" url="${sfdc.url}">
-        <reconnect count="5"/>
+        <reconnect count="10"/>
     </sfdc:config>
 
 </mule>
