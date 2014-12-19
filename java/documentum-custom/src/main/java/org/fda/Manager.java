@@ -105,6 +105,7 @@ public class Manager {
 					updateThreadState(String.format("%d parts merged from %d",
 							count, size));
 				}
+				count++;
 			}
 			output.flush();
 			if (StringUtils.isNotEmpty(md5)) {
